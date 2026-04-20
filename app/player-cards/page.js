@@ -15,16 +15,50 @@ const STAT_OPTIONS = [
   { value: "goals", label: "Goals" },
   { value: "assists", label: "Assists" },
   { value: "points", label: "Points" },
-  { value: "toi", label: "TOI (seconds)" },
+  { value: "plusMinus", label: "+/-" },
+  { value: "pim", label: "PIM" },
+  { value: "toi", label: "Time on Ice" },
+
+  // Skater-specific advanced scoring
+  { value: "powerPlayGoals", label: "Power Play Goals" },
+  { value: "powerPlayPoints", label: "Power Play Points" },
+  { value: "gameWinningGoals", label: "Game Winning Goals" },
+  { value: "otGoals", label: "OT Goals" },
+  { value: "shorthandedGoals", label: "Short-Handed Goals" },
+  { value: "shorthandedPoints", label: "Short-Handed Points" },
+  { value: "shifts", label: "Shifts" },
+
+  // Goalie stats
+  { value: "gamesStarted", label: "Games Started" },
+  { value: "shotsAgainst", label: "Shots Against" },
+  { value: "goalsAgainst", label: "Goals Against" },
+  { value: "savePctg", label: "Save %" },
+  { value: "shutouts", label: "Shutouts" },
 ];
 
 const STAT_LABELS = {
+  shots: "Shots",
   goals: "Goals",
   assists: "Assists",
   points: "Points",
-  shots: "Shots on Goal",
-  toi: "Time on Ice"
-}
+  plusMinus: "Plus/Minus",
+  pim: "Penalty Minutes",
+  toi: "Time on Ice",
+
+  powerPlayGoals: "Power Play Goals",
+  powerPlayPoints: "Power Play Points",
+  gameWinningGoals: "Game Winning Goals",
+  otGoals: "OT Goals",
+  shorthandedGoals: "Short-Handed Goals",
+  shorthandedPoints: "Short-Handed Points",
+  shifts: "Shifts",
+
+  gamesStarted: "Games Started",
+  shotsAgainst: "Shots Against",
+  goalsAgainst: "Goals Against",
+  savePctg: "Save Percentage",
+  shutouts: "Shutouts",
+};
 
 function useDebounced(value, ms = 250) {
   const [v, setV] = useState(value);
@@ -33,6 +67,26 @@ function useDebounced(value, ms = 250) {
     return () => clearTimeout(t);
   }, [value, ms]);
   return v;
+}
+
+function formatStatPhrase(stat, value) {
+  const label = STAT_LABELS[stat] || stat;
+
+  if (value === 1) {
+    if (label.endsWith("s")) {
+      return `${value} ${label.slice(0, -1)}`;
+    }
+    return `${value} ${label}`;
+  }
+
+  return `${value} ${label}`;
+}
+
+function joinPhrasesNaturally(items) {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
 }
 
 export default function PlayerCards() {
@@ -48,6 +102,8 @@ export default function PlayerCards() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const answerStatPhrases = Object.entries(result?.summary?.totals || {}).map(
+  ([stat, value]) => formatStatPhrase(stat, value));
 
   // search
   useEffect(() => {
@@ -202,7 +258,7 @@ export default function PlayerCards() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {Object.entries(result.summary?.totals || {}).map(([k, v]) => (
                 <div key={k} className="border rounded-lg p-3">
-                  <div className="text-xs text-gray-500 uppercase">{k}</div>
+                  <div className="text-xs text-gray-500 uppercase">{STAT_LABELS[k] ||k}</div>
                   <div className="text-2xl font-bold">{v}</div>
                 </div>
               ))}
@@ -214,28 +270,25 @@ export default function PlayerCards() {
   </div>
 
   <div className="text-lg font-semibold text-black leading-snug">
-    {(result.player?.name || selectedPlayer?.name || "This player")} has{" "}
-    {Object.entries(result.summary?.totals || {}).map(([stat, value], idx, arr) => (
-      <span key={stat}>
-        <span className="font-bold">{value}</span> {STAT_LABELS[stat] || stat}
-        {idx < arr.length - 1 ? ", " : ""}
-      </span>
-    ))}{" "}
-    in <span className="font-bold">{result.summary?.games}</span>{" "}
-    {result.filters?.timeframe === "last5"
-      ? "games (last 5)"
-      : result.filters?.timeframe === "last10"
-      ? "games (last 10)"
-      : result.filters?.timeframe === "season"
-      ? "games (this season)"
-      : "games (last season)"}{" "}
-    {result.filters?.opponent ? (
-      <>
-        vs <span className="font-bold">{result.filters.opponent}</span>
-      </>
-    ) : (
-      <>vs any opponent</>
-    )}
+    {(result.player?.name || selectedPlayer?.name || "This player")} recorded{" "}
+<span className="font-bold">
+  {joinPhrasesNaturally(answerStatPhrases)}
+</span>{" "}
+over <span className="font-bold">{result.summary?.games}</span>{" "}
+{result.filters?.timeframe === "last5"
+  ? "games (last 5)"
+  : result.filters?.timeframe === "last10"
+  ? "games (last 10)"
+  : result.filters?.timeframe === "season"
+  ? "games (this season)"
+  : "games (last season)"}{" "}
+{result.filters?.opponent ? (
+  <>
+    vs <span className="font-bold">{result.filters.opponent}</span>
+  </>
+) : (
+  <>vs any opponent</>
+)}
   </div>
 </div>
           <div className="border rounded-xl overflow-hidden">
@@ -246,7 +299,7 @@ export default function PlayerCards() {
                   <tr>
                     <th className="text-left px-4 py-3">Date</th>
                     <th className="text-left px-4 py-3">Opp</th>
-                    {stats.map(s => <th key={s} className="text-left px-4 py-3">{s}</th>)}
+                    {stats.map(s => <th key={s} className="text-left px-4 py-3">{STAT_LABELS[s] || s}</th>)}
                   </tr>
                 </thead>
                 <tbody>
