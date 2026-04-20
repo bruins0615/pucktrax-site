@@ -1,6 +1,10 @@
+import { headers } from "next/headers";
+
 async function getTeamDashboard(team) {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
 
   const res = await fetch(
     `${baseUrl}/api/nhl/team-dashboard?team=${team}`,
