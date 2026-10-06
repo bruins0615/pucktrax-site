@@ -11,14 +11,14 @@
   "dependencies": {
     "csv-parse": "^7.0.3",
     "csv-stringify": "^6.9.0",
-    "next": "16.1.6",
+    "next": "^16.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.4.0",
     "tailwindcss": "^4"
   }
 }
