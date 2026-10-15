@@ -95,6 +95,12 @@ cleanup. All nine existing model tests also passed.
 
 League-reference collectors are not yet connected to this logger.
 
+Each player-search, player-landing, and skater-report request has a
+30-second timeout per attempt, including reading the response body.
+Timeouts use the existing retry logic, with up to five attempts.
+Retry delays are separate from the request timeout. Offline checks
+verified timeout logging and retry exhaustion for all three helpers.
+
 ## Maintenance priorities for guided edits
 
 1. **Centralize seasons and model constants.** The three completed seasons are repeated in four reference/scoring scripts and the Bruins entry point; the shared detailed collector also has a hardcoded latest completed-season cap, and the roster preview specifies 2026–27. Use an explicit shared completed-season configuration, with live Current Trend a separate future mode. Do not silently reinterpret the frozen historical window based on today's date.

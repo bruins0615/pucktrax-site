@@ -6,6 +6,8 @@ const { createRunLogger } = require("./run-logger");
 
 const MODEL_CONFIG = require("../config/model-config");
 
+const REQUEST_TIMEOUT_MS = 30_000;
+
 const REQUIRED_FIELDS = [
   "playerId", "season", "gamesPlayed", "goals", "assists", "points",
   "totalPrimaryAssists", "totalSecondaryAssists",
@@ -36,7 +38,9 @@ async function findPlayer(name, logger) {
     await sleep(2000);
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      });
 
       if (response.status === 429) {
         if (attempt === maxAttempts) {
@@ -89,7 +93,9 @@ async function getPlayerLanding(playerId, logger) {
     await sleep(2000);
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      });
 
       if (response.status === 429) {
         if (attempt === maxAttempts) {
@@ -156,7 +162,9 @@ async function getSkaterStats(playerId, seasonId, report = "summary", logger) {
     await sleep(2000);
 
     try {
-      const response = await fetch(encodeURI(url));
+      const response = await fetch(encodeURI(url), {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      });
 
       if (response.status === 429) {
         const retryAfter = response.headers.get("retry-after");
