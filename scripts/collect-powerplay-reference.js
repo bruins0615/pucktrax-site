@@ -9,7 +9,9 @@ const {
     calculateBaselines
 } = require("./collect-league-reference");
 
-const SEASONS = [20232024, 20242025, 20252026];
+const MODEL_CONFIG = require("../config/model-config");
+
+const SEASONS = MODEL_CONFIG.historicalSeasons;
 
 const PP_METRICS = ["powerPlayPointsPerGame"];
 
@@ -50,7 +52,7 @@ function buildPowerPlayReference(summary, iceTime, season) {
 
         const points = player.ppPoints;
         const minutes = seconds / 60;
-        const eligible = minutes >= 75;
+        const eligible = minutes >= MODEL_CONFIG.minimumPowerPlayMinutes;
 
         // Preserve missing points rather than assuming zero.
         if (points == null && eligible) {
@@ -163,7 +165,7 @@ async function main() {
             collectedAt: new Date().toISOString(),
             seasons: SEASONS,
             gameTypeId: 2,
-            minimumPowerPlayMinutes: 75,
+            minimumPowerPlayMinutes: MODEL_CONFIG.minimumPowerPlayMinutes,
             reports: ["summary", "timeonice"],
             sources,
             metrics: PP_METRICS,
@@ -171,7 +173,8 @@ async function main() {
             weighting: "Each eligible skater equally weighted",
             note:
                 "Individual PP points divided by all games played. " +
-                "Baselines include only players with at least 75 PP minutes. " +
+                `Baselines include only players with at least ` +
+                `${MODEL_CONFIG.minimumPowerPlayMinutes} PP minutes. ` +
                 "Descriptive comparisons only; no PP bonus or weight assigned."
         }, null, 2) + "\n"
     );

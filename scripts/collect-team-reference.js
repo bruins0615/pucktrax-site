@@ -9,7 +9,9 @@ const {
     calculateBaselines
 } = require("./collect-league-reference");
 
-const SEASONS = [20232024, 20242025, 20252026];
+const MODEL_CONFIG = require("../config/model-config");
+
+const SEASONS = MODEL_CONFIG.historicalSeasons;
 
 const TEAM_METRICS = [
     "teamEstimatedOnIceUnblockedAttemptsPer60_5v5",
@@ -66,7 +68,7 @@ function buildTeamReference(shooting, goals, iceTime, season) {
         }
 
         const minutes5v5 = seconds5v5 / 60;
-        const eligible = minutes5v5 >= 150;
+        const eligible = minutes5v5 >= MODEL_CONFIG.minimumMinutes5v5;
 
         const rates = [
             [shots.usatFor, seconds5v5],
@@ -172,7 +174,7 @@ async function main() {
             collectedAt: new Date().toISOString(),
             seasons: SEASONS,
             gameTypeId: 2,
-            minimumMinutes5v5: 150,
+            minimumMinutes5v5: MODEL_CONFIG.minimumMinutes5v5,
             reports: ["summaryshooting", "goalsForAgainst", "timeonice"],
             sources,
             metrics: TEAM_METRICS,

@@ -2,6 +2,13 @@
 const fs = require("fs");
 const { collectPlayers } = require("./skater-collector");
 
+const MODEL_CONFIG = require("../config/model-config");
+
+const rosterSeasonId = String(MODEL_CONFIG.rosterSeason);
+
+const rosterSeasonLabel =
+  `${rosterSeasonId.slice(0, 4)}–${rosterSeasonId.slice(-2)}`;
+
 function normalizeRoster(roster) {
   if (!Array.isArray(roster.forwards) || !Array.isArray(roster.defensemen)) {
     throw new Error("Roster response is missing forward or defense groups");
@@ -30,14 +37,27 @@ async function main() {
   if (seasonPreview && args.includes("--collect")) {
     throw new Error("Season-roster fallback is preview-only; it is not verified as the active roster");
   }
-  const endpoint = seasonPreview ? "20262027" : "current";
+  const endpoint = seasonPreview
+    ? String(MODEL_CONFIG.rosterSeason)
+    : "current";
   const url = `https://api-web.nhle.com/v1/roster/BOS/${endpoint}`;
   const response = await fetch(url, { signal: AbortSignal.timeout(25000) });
   if (!response.ok) throw new Error(`Roster request failed: HTTP ${response.status}`);
   const text = await response.text();
-  if (!text.trim()) throw new Error("Current roster returned an empty body. Use --season-roster to preview the 2026-27 roster, but verify active membership before collecting.");
+  if (!text.trim()) {
+    throw new Error(
+      `Current roster returned an empty body. ` +
+      `Use --season-roster to preview the ${rosterSeasonLabel} roster, ` +
+      `but verify active membership before collecting.`
+    );
+  }
   const players = normalizeRoster(JSON.parse(text));
-  console.log(`${seasonPreview ? "2026-27 season roster (not verified active)" : "Current NHL roster"}: ${players.length} Bruins skaters; goalies excluded.`);
+  console.log(
+    `${seasonPreview
+      ? `${rosterSeasonLabel} season roster (not verified active)`
+      : "Current NHL roster"
+    }: ${players.length} Bruins skaters; goalies excluded.`
+  );
   console.table(players);
   if (!args.includes("--collect")) {
     console.log("Preview only. No player statistics or output files changed.");
@@ -47,7 +67,7 @@ async function main() {
   // Separate output prevents collisions with comparison-player backfills.
   await collectPlayers({
     players,
-    seasons: [20232024, 20242025, 20252026],
+    seasons: MODEL_CONFIG.historicalSeasons,
     outputFile: "data/bruins-skater-performance.csv"
   });
 }

@@ -2,6 +2,8 @@ const fs = require("fs");
 const { parse } = require("csv-parse/sync");
 const { stringify } = require("csv-stringify/sync");
 
+const MODEL_CONFIG = require("../config/model-config");
+
 const REQUIRED_FIELDS = [
   "playerId", "season", "gamesPlayed", "goals", "assists", "points",
   "totalPrimaryAssists", "totalSecondaryAssists",
@@ -313,7 +315,8 @@ async function collectPlayers({ players: playerInputs, outputFile = "data/skater
         season.gameTypeId === 2
     );
     const completedNhlSeasons = nhlSeasons.filter(
-      (season) => season.season <= 20252026
+      (season) =>
+        season.season <= MODEL_CONFIG.latestCompletedSeason
     );
 
     const uniqueSeasons = [

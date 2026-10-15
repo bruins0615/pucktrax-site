@@ -2,7 +2,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { stringify } = require('csv-stringify/sync');
-const SEASONS = [20232024, 20242025, 20252026];
+const MODEL_CONFIG = require("../config/model-config");
+const SEASONS = MODEL_CONFIG.historicalSeasons;
 const METRICS = ['goalsPer605v5', 'primaryAssistsPer605v5', 'secondaryAssistsPer605v5', 'individualShotsForPer60'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -77,7 +78,7 @@ function buildReference(scoring, possession, season) {
       (p.individualShotsForPer60 != null && (!Number.isFinite(p.individualShotsForPer60) || p.individualShotsForPer60 < 0))) {
       throw new Error(`Invalid numeric fields for ${s.playerId}, ${season}`);
     }
-    if (minutes >= 150 && missing.length) {
+    if (minutes >= MODEL_CONFIG.minimumMinutes5v5 && missing.length) {
       throw new Error(`Eligible player has missing fields: ${s.playerId}, ${season}: ${missing.join(', ')}`);
     }
     if ((['primaryAssists5v5', 'secondaryAssists5v5', 'assists5v5'].every((k) => s[k] != null) &&
@@ -89,7 +90,7 @@ function buildReference(scoring, possession, season) {
     return {
       season, playerId: s.playerId, player: s.skaterFullName, position: s.positionCode,
       gamesPlayed: s.gamesPlayed, estimatedMinutes5v5: minutes,
-      sampleStatus: minutes >= 150 ? 'Eligible' : 'Limited sample',
+      sampleStatus: minutes >= MODEL_CONFIG.minimumMinutes5v5 ? 'Eligible' : 'Limited sample',
       dataStatus: missing.length ? `Unavailable fields: ${missing.join(', ')}` : 'Complete',
       goals5v5: s.goals5v5, primaryAssists5v5: s.primaryAssists5v5,
       secondaryAssists5v5: s.secondaryAssists5v5,
@@ -143,7 +144,7 @@ async function main() {
   atomicWrite(path.join(directory, 'baselines.csv'), stringify(baselines, { header: true }));
   atomicWrite(path.join(directory, 'metadata.json'), JSON.stringify({
     collectedAt: new Date().toISOString(), seasons: SEASONS, gameTypeId: 2,
-    minimumMinutes5v5: 150, timeSource: 'scoringRates.timeOnIcePerGame5v5 * gamesPlayed; approximate',
+    minimumMinutes5v5: MODEL_CONFIG.minimumMinutes5v5, timeSource: 'scoringRates.timeOnIcePerGame5v5 * gamesPlayed; approximate',
     standardDeviation: 'Population; eligible skaters equally weighted within season and NHL position',
     reports: ['scoringRates', 'puckPossessions'], sources,
     note: 'Descriptive reference statistics only. No player scores, rankings, or model weights.'

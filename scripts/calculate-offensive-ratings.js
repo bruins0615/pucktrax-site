@@ -7,20 +7,14 @@ const { atomicWrite } = require("./collect-league-reference");
 
 const REFERENCE_DIRECTORY = path.resolve("data/league-reference");
 
-const HISTORICAL_SEASONS = [
-    "20232024",
-    "20242025",
-    "20252026"
-];
+const MODEL_CONFIG = require("../config/model-config");
 
-const METRIC_WEIGHTS = {
-    goalsPer605v5: 0.54,
-    primaryAssistsPer605v5: 0.27,
-    secondaryAssistsPer605v5: 0.09,
-    individualShotsForPer60: 0.10
-};
+const HISTORICAL_SEASONS =
+    MODEL_CONFIG.historicalSeasons.map(String);
 
-const PP_COEFFICIENT = 1;
+const METRIC_WEIGHTS = MODEL_CONFIG.fiveOnFiveWeights;
+
+const PP_COEFFICIENT = MODEL_CONFIG.powerPlayCoefficient;
 
 function readReference(filename) {
     const text = fs.readFileSync(
@@ -453,13 +447,13 @@ function main() {
     atomicWrite(
         path.join(outputDirectory, "model-metadata.json"),
         JSON.stringify({
-            modelVersion: "offense-v1-provisional",
+            modelVersion: MODEL_CONFIG.modelVersion,
             generatedAt: new Date().toISOString(),
             historicalSeasons: HISTORICAL_SEASONS,
             fiveOnFiveWeights: METRIC_WEIGHTS,
             powerPlayCoefficient: PP_COEFFICIENT,
-            minimumMinutes5v5: 150,
-            minimumPowerPlayMinutesForSampleLabel: 75,
+            minimumMinutes5v5: MODEL_CONFIG.minimumMinutes5v5,
+            minimumPowerPlayMinutesForSampleLabel: MODEL_CONFIG.minimumPowerPlayMinutes,
             powerPlayPolicy:
                 "Positive credit for all recorded PP points/game, " +
                 "including below the PP sample threshold.",
