@@ -1,0 +1,37 @@
+{
+  "modelVersion": "offense-v1-provisional",
+  "generatedAt": "2026-10-15T16:51:08.554Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "fiveOnFiveWeights": {
+    "goalsPer605v5": 0.54,
+    "primaryAssistsPer605v5": 0.27,
+    "secondaryAssistsPer605v5": 0.09,
+    "individualShotsForPer60": 0.1
+  },
+  "powerPlayCoefficient": 1,
+  "minimumMinutes5v5": 150,
+  "minimumPowerPlayMinutesForSampleLabel": 75,
+  "powerPlayPolicy": "Positive credit for all recorded PP points/game, including below the PP sample threshold.",
+  "seasonComparisonGroup": "Same season and NHL position; eligible five-on-five players.",
+  "historicalComparisonGroup": "Same latest recorded NHL position within the historical window; players with at least one eligible season.",
+  "historicalAggregation": "Equal average of available eligible season indices, followed by historical percentile calculation.",
+  "percentileMethod": "100 * (number below + half the number tied) / group size. Uses unrounded indices.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal.",
+  "sampleAdjustment": "None",
+  "teamContextWeight": 0,
+  "shorthandedScoringAddition": 0,
+  "sources": [
+    "data/league-reference/skaters.csv",
+    "data/league-reference/baselines.csv",
+    "data/league-reference/powerplay-skaters.csv"
+  ],
+  "outputCounts": {
+    "seasonRecords": 2784,
+    "historicalRecords": 1196
+  },
+  "note": "Descriptive offensive ratings only. Not overall player value or projected performance. Zero index is not the combined league average; 10.0 can result from percentile rounding."
+}

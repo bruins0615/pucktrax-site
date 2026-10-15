@@ -1,0 +1,42 @@
+{
+  "collectedAt": "2026-10-15T13:37:48.045Z",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "minimumMinutes5v5": 150,
+  "reports": [
+    "summaryshooting",
+    "goalsForAgainst",
+    "timeonice"
+  ],
+  "sources": [
+    {
+      "season": 20232024,
+      "shootingRows": 924,
+      "goalsRows": 924,
+      "iceTimeRows": 924
+    },
+    {
+      "season": 20242025,
+      "shootingRows": 920,
+      "goalsRows": 920,
+      "iceTimeRows": 920
+    },
+    {
+      "season": 20252026,
+      "shootingRows": 940,
+      "goalsRows": 940,
+      "iceTimeRows": 940
+    }
+  ],
+  "metrics": [
+    "teamEstimatedOnIceUnblockedAttemptsPer60_5v5",
+    "teamOnIceGoalsForPer60EvenStrength"
+  ],
+  "standardDeviation": "Population",
+  "weighting": "Each eligible skater equally weighted",
+  "note": "Team on-ice context only. Unadjusted for teammates, opponents and deployment. Five-on-five time reconstructed from the summaryshooting per-game average."
+}

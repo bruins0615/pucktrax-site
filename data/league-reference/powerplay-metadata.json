@@ -1,0 +1,37 @@
+{
+  "collectedAt": "2026-10-15T14:29:11.495Z",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "minimumPowerPlayMinutes": 75,
+  "reports": [
+    "summary",
+    "timeonice"
+  ],
+  "sources": [
+    {
+      "season": 20232024,
+      "summaryRows": 924,
+      "iceTimeRows": 924
+    },
+    {
+      "season": 20242025,
+      "summaryRows": 920,
+      "iceTimeRows": 920
+    },
+    {
+      "season": 20252026,
+      "summaryRows": 940,
+      "iceTimeRows": 940
+    }
+  ],
+  "metrics": [
+    "powerPlayPointsPerGame"
+  ],
+  "standardDeviation": "Population",
+  "weighting": "Each eligible skater equally weighted",
+  "note": "Individual PP points divided by all games played. Baselines include only players with at least 75 PP minutes. Descriptive comparisons only; no PP bonus or weight assigned."
+}
