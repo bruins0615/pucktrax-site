@@ -195,7 +195,14 @@ async function main() {
     );
 }
 
-main().catch((error) => {
-    console.error(error.message);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch((error) => {
+        console.error(error.message);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = {
+    buildPowerPlayReference,
+    PP_METRICS
+};

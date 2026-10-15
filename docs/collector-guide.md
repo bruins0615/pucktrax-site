@@ -2,7 +2,7 @@
 
 The collector now separates which players to collect from how their reports are collected.
 
-- `scripts/test-nhl-player.js`: contract CSV names; preserves the original comparison-player command and last-five-available-seasons behavior, capped at 2025–26.
+- `scripts/collect-contract-players.js`: contract CSV names; preserves the original comparison-player command and last-five-available-seasons behavior, capped at 2025–26.
 - `scripts/collect-bruins.js`: current roster IDs; historical seasons 2023–24, 2024–25, and 2025–26. Historical statistics include previous teams. Goalies excluded.
 - `scripts/skater-collector.js`: shared requests, retries, report mappings, core-field completeness, record replacement, and CSV saving.
 

@@ -492,9 +492,21 @@ function main() {
     console.log(`Rating files saved to ${outputDirectory}`);
 }
 
-try {
-    main();
-} catch (error) {
-    console.error(error.message);
-    process.exitCode = 1;
+if (require.main === module) {
+    try {
+        main();
+    } catch (error) {
+        console.error(error.message);
+        process.exitCode = 1;
+    }
 }
+
+module.exports = {
+    requireNumber,
+    indexUnique,
+    playerSeasonKey,
+    baselineKey,
+    calculateSeasonScore,
+    addPercentileRatings,
+    buildHistoricalScores
+};

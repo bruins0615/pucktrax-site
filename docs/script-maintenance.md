@@ -7,7 +7,7 @@ This inventory describes the scripts as audited, without moving or deleting them
 | Script | Role | Recommendation |
 |---|---|---|
 | `skater-collector.js` | Shared detailed API requests, record mappings, completion and saving | Keep as a shared module; do not invoke directly. |
-| `test-nhl-player.js` | Select contract-comparison players and call the shared collector | Keep the function; eventually rename to `collect-contract-players.js`. Despite its name, it collects data and is not a test. |
+| `collect-contract-players.js` | Select contract-comparison players and call the shared collector | Keep the function |
 | `collect-bruins.js` | Preview current Bruins skaters and collect selected historical seasons | Keep. Default is preview-only. Season fallback remains preview-only; do not mistake it for a verified live active list. |
 | `collect-league-reference.js` | League-wide 5v5 reference and positional baselines; currently also exports shared helpers | Keep; eventually extract shared helpers into a dedicated library. |
 | `collect-team-reference.js` | League-wide team on-ice context and positional baselines | Keep, separate from weighted individual scoring. |
@@ -52,7 +52,7 @@ The reference collectors save metadata per run, but the scoring metadata current
 ### Detailed comparison-player collection
 
 ```sh
-node scripts/test-nhl-player.js
+node scripts/collect-contract-players.js
 ```
 
 Uses contract names, selected available completed seasons, and `data/skater-performance.csv`. This does not build the league-wide reference or ratings. It skips rows considered complete, so it is not a live-season refresh mechanism.
