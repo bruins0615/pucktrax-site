@@ -9,7 +9,8 @@ const {
 } = require("../scripts/calculate-offensive-ratings");
 
 const {
-    buildReference
+    buildReference,
+    calculateBaselines
 } = require("../scripts/collect-league-reference");
 
 const {
@@ -255,4 +256,40 @@ test("a player with no eligible history remains unrated", () => {
     assert.equal(result.offensiveIndex, null);
     assert.equal(result.percentile, null);
     assert.equal(result.offenseRating, null);
+});
+
+test("baselines accept zero and calculate population statistics", () => {
+    const rows = [0, 2].map((value, index) => ({
+        season: 20252026,
+        playerId: index + 1,
+        position: "D",
+        sampleStatus: "Eligible",
+        exampleMetric: value
+    }));
+
+    const [baseline] = calculateBaselines(rows, ["exampleMetric"]);
+
+    assert.equal(baseline.eligiblePlayers, 2);
+    assert.equal(baseline.mean, 1);
+    assert.equal(baseline.populationStandardDeviation, 1);
+    assert.equal(baseline.scalingStatus, "Available");
+});
+
+test("baselines reject invalid eligible values with useful context", () => {
+    for (const value of [
+        undefined, null, "", "2", NaN, Infinity, -Infinity
+    ]) {
+        const row = {
+            season: 20252026,
+            playerId: 123,
+            position: "D",
+            sampleStatus: "Eligible",
+            exampleMetric: value
+        };
+
+        assert.throws(
+            () => calculateBaselines([row], ["exampleMetric"]),
+            /Invalid baseline input: exampleMetric for player 123, season 20252026, position D/
+        );
+    }
 });

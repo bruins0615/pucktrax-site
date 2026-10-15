@@ -109,7 +109,19 @@ function calculateBaselines(rows, metrics = METRICS) {
     groups.get(key).push(row);
   }
   return [...groups.values()].flatMap((group) => metrics.map((metric) => {
-    const values = group.map((r) => r[metric]);
+    const values = group.map((row) => {
+      const value = row[metric];
+
+      if (!Number.isFinite(value)) {
+        throw new Error(
+          `Invalid baseline input: ${metric} for player ` +
+          `${row.playerId}, season ${row.season}, ` +
+          `position ${row.position}. Expected a finite number.`
+        );
+      }
+
+      return value;
+    });
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const sd = Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length);
     return {
