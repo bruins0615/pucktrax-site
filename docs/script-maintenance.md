@@ -74,6 +74,27 @@ node scripts/collect-bruins.js --collect
 
 Collects from a valid current-roster response into the separate Bruins CSV. It will not silently substitute the season roster. Completion of that collection has not been established in this audit.
 
+## Detailed collection run logs
+
+The shared skater collector creates a separate timestamped log file for
+each run under `logs/`. This covers contract-player and Bruins collection.
+The logs directory is excluded from Git.
+
+Logs include collection settings, progress, retry messages, errors, and a
+final summary with duration, saved player-seasons, already-complete
+player-seasons, failed player-seasons, and failed player lookups.
+
+Runs with recorded failures return exit status 1 while retaining saved
+progress. Unexpected errors are logged and rethrown. Ctrl+C (SIGINT) and
+SIGTERM write an interruption message before exiting with status 130 or
+143 respectively. Forced termination or power loss cannot be logged.
+
+Offline verification covered successful completion, unexpected CSV
+errors, unmatched players, both interruption signals, and signal-handler
+cleanup. All nine existing model tests also passed.
+
+League-reference collectors are not yet connected to this logger.
+
 ## Maintenance priorities for guided edits
 
 1. **Centralize seasons and model constants.** The three completed seasons are repeated in four reference/scoring scripts and the Bruins entry point; the shared detailed collector also has a hardcoded latest completed-season cap, and the roster preview specifies 2026–27. Use an explicit shared completed-season configuration, with live Current Trend a separate future mode. Do not silently reinterpret the frozen historical window based on today's date.

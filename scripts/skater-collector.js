@@ -2,6 +2,8 @@ const fs = require("fs");
 const { parse } = require("csv-parse/sync");
 const { stringify } = require("csv-stringify/sync");
 
+const { createRunLogger } = require("./run-logger");
+
 const MODEL_CONFIG = require("../config/model-config");
 
 const REQUIRED_FIELDS = [
@@ -22,7 +24,7 @@ function isCompleteRecord(record) {
     Number(record.goals5v5) + Number(record.assists5v5) === Number(record.points5v5);
 }
 
-async function findPlayer(name) {
+async function findPlayer(name, logger) {
   const url =
     `https://search.d3.nhle.com/api/v1/search/player` +
     `?culture=en-us&limit=50&q=${encodeURIComponent(name)}`;
@@ -49,7 +51,7 @@ async function findPlayer(name) {
             ? Math.max(0, seconds * 1000)
             : Math.min(15000 * (2 ** (attempt - 1)), 120000);
 
-        console.log(
+        logger.log(
           `Player search rate limited. Waiting ${Math.ceil(waitMs / 1000)} seconds.`
         );
 
@@ -64,7 +66,7 @@ async function findPlayer(name) {
       return await response.json();
 
     } catch (error) {
-      console.log(
+      logger.log(
         `Player search error (${attempt}/${maxAttempts}): ${error.message}`
       );
 
@@ -77,7 +79,7 @@ async function findPlayer(name) {
   }
 }
 
-async function getPlayerLanding(playerId) {
+async function getPlayerLanding(playerId, logger) {
   const url = `https://api-web.nhle.com/v1/player/${playerId}/landing`;
 
   const maxAttempts = 5;
@@ -109,7 +111,7 @@ async function getPlayerLanding(playerId) {
           }
         }
 
-        console.log(
+        logger.log(
           `Player landing rate limited. Waiting ${Math.ceil(waitMs / 1000)} seconds.`
         );
 
@@ -124,7 +126,7 @@ async function getPlayerLanding(playerId) {
       return await response.json();
 
     } catch (error) {
-      console.log(
+      logger.log(
         `Player landing error (${attempt}/${maxAttempts}): ${error.message}`
       );
 
@@ -139,7 +141,7 @@ async function getPlayerLanding(playerId) {
   }
 }
 
-async function getSkaterStats(playerId, seasonId, report = "summary") {
+async function getSkaterStats(playerId, seasonId, report = "summary", logger) {
   const url =
     `https://api.nhle.com/stats/rest/en/skater/${report}` +
     "?isAggregate=false" +
@@ -175,7 +177,7 @@ async function getSkaterStats(playerId, seasonId, report = "summary") {
           }
         }
 
-        console.log(
+        logger.log(
           `Rate limited (${report}). Waiting ${Math.ceil(waitMs / 1000)} seconds.`
         );
 
@@ -196,7 +198,7 @@ async function getSkaterStats(playerId, seasonId, report = "summary") {
       return data.data?.[0] ?? null;
 
     } catch (error) {
-      console.log(
+      logger.log(
         `NHL Stats API error (${report}, attempt ${attempt}/${maxAttempts}): ${error.message}`
       );
 
@@ -221,423 +223,509 @@ function sleep(ms) {
 
 async function collectPlayers({ players: playerInputs, outputFile = "data/skater-performance.csv", seasons = null }) {
 
-  // Load previously collected player-season records
-  let allRecords = [];
+  const logger = createRunLogger("skater-collection");
+  const startedAt = Date.now();
 
-  if (fs.existsSync(outputFile)) {
-    const existingCsv = fs.readFileSync(outputFile, "utf8");
+  logger.log("Collection started", {
+    outputFile,
+    requestedPlayers: playerInputs.length,
+    requestedSeasons: seasons ?? "Available completed seasons"
+  });
 
-    if (existingCsv.trim()) {
-      const { parse } = await import("csv-parse/sync");
+  logger.log(`Run log: ${logger.logFile}`);
 
-      allRecords = parse(existingCsv, {
-        columns: true,
-        skip_empty_lines: true
+  function handleInterruption(signal, exitCode) {
+    try {
+      logger.error("Collection stopped early", {
+        reason: signal,
+        finishedAt: new Date().toISOString(),
+        durationSeconds: Number(
+          ((Date.now() - startedAt) / 1000).toFixed(1)
+        ),
+        outputFile,
+        logFile: logger.logFile,
+        note: "Previously saved progress remains on disk."
       });
+    } finally {
+      process.exit(exitCode);
     }
   }
 
-  const completedRecords = new Set(
-    allRecords.filter(isCompleteRecord).map((record) => `${record.playerId}-${record.season}`)
-  );
+  const onInterrupt = () => handleInterruption("SIGINT", 130);
+  const onTerminate = () => handleInterruption("SIGTERM", 143);
 
-  let updated = 0;
-  let failures = 0;
-  for (const input of playerInputs) {
-    const playerName = typeof input === "string" ? input : input.name;
-    let player = typeof input === "string" ? null : input;
-    if (!player) {
-      console.log(`\nSearching NHL for: ${playerName}`);
+  process.once("SIGINT", onInterrupt);
+  process.once("SIGTERM", onTerminate);
 
-      let players;
+  try {
+    // Load previously collected player-season records
+    let allRecords = [];
 
-      try {
-        players = await findPlayer(playerName);
-      } catch (error) {
-        console.log(`Skipping ${playerName}: ${error.message}`);
+    if (fs.existsSync(outputFile)) {
+      const existingCsv = fs.readFileSync(outputFile, "utf8");
+
+      if (existingCsv.trim()) {
+        const { parse } = await import("csv-parse/sync");
+
+        allRecords = parse(existingCsv, {
+          columns: true,
+          skip_empty_lines: true
+        });
+      }
+    }
+
+    const completedRecords = new Set(
+      allRecords.filter(isCompleteRecord).map((record) => `${record.playerId}-${record.season}`)
+    );
+
+    let updated = 0;
+    let failures = 0;
+    let skippedComplete = 0;
+    let playerFailures = 0;
+    for (const input of playerInputs) {
+      const playerName = typeof input === "string" ? input : input.name;
+      let player = typeof input === "string" ? null : input;
+      if (!player) {
+        logger.log(`\nSearching NHL for: ${playerName}`);
+
+        let players;
+
+        try {
+          players = await findPlayer(playerName, logger);
+        } catch (error) {
+          playerFailures++;
+          logger.error(`Skipping ${playerName}: ${error.message}`);
+          await sleep(1000);
+          continue;
+        }
+
+        const exactMatches = players.filter(
+          (p) => p.name.toLowerCase() === playerName.toLowerCase()
+        );
+
+        if (exactMatches.length === 0) {
+          playerFailures++;
+          logger.error(`Could not find exact match for ${playerName}`);
+          continue;
+        }
+
+
+        if (exactMatches.length === 1) {
+          player = exactMatches[0];
+        } else {
+          const activeMatches = exactMatches.filter(
+            (p) => p.active === true
+          );
+
+          if (activeMatches.length === 1) {
+            player = activeMatches[0];
+            logger.log(`Multiple matches found. Using active player: ${player.name}`);
+          } else {
+            playerFailures++;
+            logger.error(`Could not safely identify ${playerName}:`);
+            logger.log(exactMatches);
+            continue;
+          }
+        }
+
+      }
+
+      logger.log(`Found: ${player.name}`);
+      logger.log(`NHL Player ID: ${player.playerId}`);
+      logger.log(`Position: ${player.positionCode}`);
+      logger.log(`Team: ${player.teamAbbrev}`);
+
+      if (player.positionCode === "G") {
+        logger.log(`Skipping goalie for now: ${player.name}`);
         await sleep(1000);
         continue;
       }
 
-      const exactMatches = players.filter(
-        (p) => p.name.toLowerCase() === playerName.toLowerCase()
-      );
-
-      if (exactMatches.length === 0) {
-        console.log(`Could not find exact match for ${playerName}`);
-        continue;
-      }
-
-
-      if (exactMatches.length === 1) {
-        player = exactMatches[0];
-      } else {
-        const activeMatches = exactMatches.filter(
-          (p) => p.active === true
-        );
-
-        if (activeMatches.length === 1) {
-          player = activeMatches[0];
-          console.log(`Multiple matches found. Using active player: ${player.name}`);
-        } else {
-          console.log(`Could not safely identify ${playerName}:`);
-          console.table(exactMatches);
-          continue;
-        }
-      }
-
-    }
-
-    console.log(`Found: ${player.name}`);
-    console.log(`NHL Player ID: ${player.playerId}`);
-    console.log(`Position: ${player.positionCode}`);
-    console.log(`Team: ${player.teamAbbrev}`);
-
-    if (player.positionCode === "G") {
-      console.log(`Skipping goalie for now: ${player.name}`);
-      await sleep(1000);
-      continue;
-    }
-
-    let playerData;
-
-    try {
-      playerData = await getPlayerLanding(player.playerId);
-    } catch (error) {
-      console.log(`Skipping ${player.name}: ${error.message}`);
-      await sleep(1000);
-      continue;
-    }
-
-    const nhlSeasons = playerData.seasonTotals.filter(
-      (season) =>
-        season.leagueAbbrev === "NHL" &&
-        season.gameTypeId === 2
-    );
-    const completedNhlSeasons = nhlSeasons.filter(
-      (season) =>
-        season.season <= MODEL_CONFIG.latestCompletedSeason
-    );
-
-    const uniqueSeasons = [
-      ...new Set(completedNhlSeasons.map((season) => season.season))
-    ];
-
-    const lastFiveSeasons = seasons
-      ? [...new Set(seasons)].filter((season) => uniqueSeasons.includes(season)).sort()
-      : uniqueSeasons.sort((a, b) => a - b).slice(-5);
-
-    console.log("\nNHL Regular Season Stats:");
-
-    for (const seasonId of lastFiveSeasons) {
-
-      const recordKey = `${player.playerId}-${seasonId}`;
-
-      if (completedRecords.has(recordKey)) {
-        console.log(`Already collected: ${player.name} (${seasonId})`);
-        continue;
-      }
+      let playerData;
 
       try {
-
-        const summaryStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "summary"
-        );
-
-        const realtimeStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "realtime"
-        );
-
-        const timeOnIceStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "timeonice"
-        );
-
-        const faceoffStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "faceoffwins"
-        );
-
-        const penaltyStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "penalties"
-        );
-
-        const goalsForAgainstStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "goalsForAgainst"
-        );
-
-        const puckPossessionStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "puckPossessions"
-        );
-
-        const summaryShootingStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "summaryshooting"
-        );
-
-        const scoringPerGameStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "scoringpergame"
-        );
-
-        const scoringRatesStats = await getSkaterStats(
-          player.playerId,
-          seasonId,
-          "scoringRates"
-        );
-
-        console.log(
-          `NHL Summary: ${player.name} (${seasonId})`,
-          summaryStats
-        );
-
-        console.log(
-          `NHL Realtime: ${player.name} (${seasonId})`,
-          realtimeStats
-        );
-
-        console.log(
-          `NHL Time on Ice: ${player.name} (${seasonId})`,
-          timeOnIceStats
-        );
-
-        console.log(
-          `NHL Faceoffs: ${player.name} (${seasonId})`,
-          faceoffStats
-        );
-
-        console.log(
-          `NHL Penalties: ${player.name} (${seasonId})`,
-          penaltyStats
-        );
-
-        console.log(
-          `NHL Goals For/Against: ${player.name} (${seasonId})`,
-          goalsForAgainstStats
-        );
-
-        console.log(
-          `NHL Puck Possession: ${player.name} (${seasonId})`,
-          puckPossessionStats
-        );
-
-        console.log(
-          `NHL Summary Shooting: ${player.name} (${seasonId})`,
-          summaryShootingStats
-        );
-
-        console.log(
-          `NHL Scoring Per Game: ${player.name} (${seasonId})`,
-          scoringPerGameStats
-        );
-
-        console.log(
-          `NHL Five-on-Five Scoring: ${player.name} (${seasonId})`,
-          scoringRatesStats
-        );
-
-        const seasonRecords = completedNhlSeasons.filter(
-          (season) => season.season === seasonId
-        );
-
-        const teams = [
-          ...new Set(
-            seasonRecords.map(
-              (season) => season.teamName?.default ?? player.teamAbbrev
-            )
-          )
-        ];
-
-        const record = {
-          //NHL Summary Stats
-          playerId: player.playerId,
-          player: player.name,
-          position: player.positionCode,
-          season: seasonId,
-          teams: teams.join(","),
-          gamesPlayed: summaryStats?.gamesPlayed ?? null,
-          goals: summaryStats?.goals ?? null,
-          assists: summaryStats?.assists ?? null,
-          totalPrimaryAssists: scoringPerGameStats?.totalPrimaryAssists ?? null,
-          totalSecondaryAssists: scoringPerGameStats?.totalSecondaryAssists ?? null,
-          points: summaryStats?.points ?? null,
-          shots: summaryStats?.shots ?? null,
-          avgToi: summaryStats?.timeOnIcePerGame ?? null,
-          powerPlayPoints: summaryStats?.ppPoints ?? null,
-          plusMinus: summaryStats?.plusMinus ?? null,
-          evenStrengthGoals: summaryStats?.evGoals ?? null,
-          evenStrengthPoints: summaryStats?.evPoints ?? null,
-          shootingPct: summaryStats?.shootingPct ?? null,
-          faceoffWinPct: summaryStats?.faceoffWinPct ?? null,
-          // NHL Five-on-Five Scoring Stats
-          goals5v5: scoringRatesStats?.goals5v5 ?? null,
-          assists5v5: scoringRatesStats?.assists5v5 ?? null,
-          primaryAssists5v5: scoringRatesStats?.primaryAssists5v5 ?? null,
-          secondaryAssists5v5: scoringRatesStats?.secondaryAssists5v5 ?? null,
-          points5v5: scoringRatesStats?.points5v5 ?? null,
-          goalsPer605v5: scoringRatesStats?.goalsPer605v5 ?? null,
-          assistsPer605v5: scoringRatesStats?.assistsPer605v5 ?? null,
-          primaryAssistsPer605v5: scoringRatesStats?.primaryAssistsPer605v5 ?? null,
-          secondaryAssistsPer605v5: scoringRatesStats?.secondaryAssistsPer605v5 ?? null,
-          pointsPer605v5: scoringRatesStats?.pointsPer605v5 ?? null,
-          timeOnIcePerGame5v5ScoringRates: scoringRatesStats?.timeOnIcePerGame5v5 ?? null,
-          //NHL Realtime Stats
-          totalShotAttempts: realtimeStats?.totalShotAttempts ?? null,
-          missedShots: realtimeStats?.missedShots ?? null,
-          shotAttemptsBlocked: realtimeStats?.shotAttemptsBlocked ?? null,
-          blockedShots: realtimeStats?.blockedShots ?? null,
-          giveaways: realtimeStats?.giveaways ?? null,
-          takeaways: realtimeStats?.takeaways ?? null,
-          hits: realtimeStats?.hits ?? null,
-          //NHL Time on Ice Stats
-          timeOnIce: timeOnIceStats?.timeOnIce ?? null,
-          evTimeOnIce: timeOnIceStats?.evTimeOnIce ?? null,
-          ppTimeOnIce: timeOnIceStats?.ppTimeOnIce ?? null,
-          shTimeOnIce: timeOnIceStats?.shTimeOnIce ?? null,
-          otTimeOnIce: timeOnIceStats?.otTimeOnIce ?? null,
-          shifts: timeOnIceStats?.shifts ?? null,
-          shiftsPerGame: timeOnIceStats?.shiftsPerGame ?? null,
-          timeOnIcePerShift: timeOnIceStats?.timeOnIcePerShift ?? null,
-          // NHL Faceoff Stats
-          totalFaceoffs: faceoffStats?.totalFaceoffs ?? null,
-          totalFaceoffWins: faceoffStats?.totalFaceoffWins ?? null,
-          totalFaceoffLosses: faceoffStats?.totalFaceoffLosses ?? null,
-          defensiveZoneFaceoffs: faceoffStats?.defensiveZoneFaceoffs ?? null,
-          defensiveZoneFaceoffWins: faceoffStats?.defensiveZoneFaceoffWins ?? null,
-          defensiveZoneFaceoffLosses: faceoffStats?.defensiveZoneFaceoffLosses ?? null,
-          offensiveZoneFaceoffs: faceoffStats?.offensiveZoneFaceoffs ?? null,
-          offensiveZoneFaceoffWins: faceoffStats?.offensiveZoneFaceoffWins ?? null,
-          offensiveZoneFaceoffLosses: faceoffStats?.offensiveZoneFaceoffLosses ?? null,
-          neutralZoneFaceoffs: faceoffStats?.neutralZoneFaceoffs ?? null,
-          neutralZoneFaceoffWins: faceoffStats?.neutralZoneFaceoffWins ?? null,
-          neutralZoneFaceoffLosses: faceoffStats?.neutralZoneFaceoffLosses ?? null,
-          evFaceoffs: faceoffStats?.evFaceoffs ?? null,
-          evFaceoffsWon: faceoffStats?.evFaceoffsWon ?? null,
-          evFaceoffsLost: faceoffStats?.evFaceoffsLost ?? null,
-          ppFaceoffs: faceoffStats?.ppFaceoffs ?? null,
-          ppFaceoffsWon: faceoffStats?.ppFaceoffsWon ?? null,
-          ppFaceoffsLost: faceoffStats?.ppFaceoffsLost ?? null,
-          shFaceoffs: faceoffStats?.shFaceoffs ?? null,
-          shFaceoffsWon: faceoffStats?.shFaceoffsWon ?? null,
-          shFaceoffsLost: faceoffStats?.shFaceoffsLost ?? null,
-          // NHL Penalty Stats
-          penalties: penaltyStats?.penalties ?? null,
-          minorPenalties: penaltyStats?.minorPenalties ?? null,
-          majorPenalties: penaltyStats?.majorPenalties ?? null,
-          penaltiesDrawn: penaltyStats?.penaltiesDrawn ?? null,
-          netPenalties: penaltyStats?.netPenalties ?? null,
-          penaltyMinutes: penaltyStats?.penaltyMinutes ?? null,
-          penaltiesDrawnPer60: penaltyStats?.penaltiesDrawnPer60 ?? null,
-          penaltiesTakenPer60: penaltyStats?.penaltiesTakenPer60 ?? null,
-          netPenaltiesPer60: penaltyStats?.netPenaltiesPer60 ?? null,
-          // NHL Goals For/Against Stats
-          evenStrengthGoalsFor: goalsForAgainstStats?.evenStrengthGoalsFor ?? null,
-          evenStrengthGoalsAgainst: goalsForAgainstStats?.evenStrengthGoalsAgainst ?? null,
-          evenStrengthGoalDifference: goalsForAgainstStats?.evenStrengthGoalDifference ?? null,
-          evenStrengthGoalsForPct: goalsForAgainstStats?.evenStrengthGoalsForPct ?? null,
-          evenStrengthTimeOnIcePerGame: goalsForAgainstStats?.evenStrengthTimeOnIcePerGame ?? null,
-          powerPlayGoalFor: goalsForAgainstStats?.powerPlayGoalFor ?? null,
-          powerPlayGoalsAgainst: goalsForAgainstStats?.powerPlayGoalsAgainst ?? null,
-          powerPlayTimeOnIcePerGame: goalsForAgainstStats?.powerPlayTimeOnIcePerGame ?? null,
-          shortHandedGoalsFor: goalsForAgainstStats?.shortHandedGoalsFor ?? null,
-          shortHandedGoalsAgainst: goalsForAgainstStats?.shortHandedGoalsAgainst ?? null,
-          shortHandedTimeOnIcePerGame: goalsForAgainstStats?.shortHandedTimeOnIcePerGame ?? null,
-          // NHL Puck Possession Stats
-          satPct: puckPossessionStats?.satPct ?? null,
-          usatPct: puckPossessionStats?.usatPct ?? null,
-          goalsPct: puckPossessionStats?.goalsPct ?? null,
-          onIceShootingPct: puckPossessionStats?.onIceShootingPct ?? null,
-          individualSatForPer60: puckPossessionStats?.individualSatForPer60 ?? null,
-          individualShotsForPer60: puckPossessionStats?.individualShotsForPer60 ?? null,
-          defensiveZoneStartPct: puckPossessionStats?.defensiveZoneStartPct ?? null,
-          offensiveZoneStartPct: puckPossessionStats?.offensiveZoneStartPct ?? null,
-          neutralZoneStartPct: puckPossessionStats?.neutralZoneStartPct ?? null,
-          offensiveZoneStartRatio: puckPossessionStats?.offensiveZoneStartRatio ?? null,
-          faceoffPct5v5: puckPossessionStats?.faceoffPct5v5 ?? null,
-          timeOnIcePerGame5v5: puckPossessionStats?.timeOnIcePerGame5v5 ?? null,
-          // NHL Summary Shooting Stats
-          satFor: summaryShootingStats?.satFor ?? null,
-          satAgainst: summaryShootingStats?.satAgainst ?? null,
-          satTotal: summaryShootingStats?.satTotal ?? null,
-          satRelative: summaryShootingStats?.satRelative ?? null,
-          satAhead: summaryShootingStats?.satAhead ?? null,
-          satBehind: summaryShootingStats?.satBehind ?? null,
-          satTied: summaryShootingStats?.satTied ?? null,
-          satClose: summaryShootingStats?.satClose ?? null,
-          usatFor: summaryShootingStats?.usatFor ?? null,
-          usatAgainst: summaryShootingStats?.usatAgainst ?? null,
-          usatTotal: summaryShootingStats?.usatTotal ?? null,
-          usatRelative: summaryShootingStats?.usatRelative ?? null,
-          usatAhead: summaryShootingStats?.usatAhead ?? null,
-          usatBehind: summaryShootingStats?.usatBehind ?? null,
-          usatTied: summaryShootingStats?.usatTied ?? null,
-          usatClose: summaryShootingStats?.usatClose ?? null,
-          timeOnIcePerGame5v5SummaryShooting: summaryShootingStats?.timeOnIcePerGame5v5 ?? null
-        };
-
-        if (!isCompleteRecord(record)) {
-          throw new Error("Required core statistics missing; existing row preserved");
-        }
-
-        const existingIndex = allRecords.findIndex(
-          (saved) =>
-            `${saved.playerId}-${saved.season}` === recordKey
-        );
-
-        if (existingIndex >= 0) {
-          allRecords[existingIndex] = record;
-        } else {
-          allRecords.push(record);
-        }
-
-
-        // Save progress after each completed player-season
-        const columns = [
-          ...new Set(allRecords.flatMap((saved) => Object.keys(saved)))
-        ];
-
-        const csvOutput = stringify(allRecords, {
-          header: true,
-          columns
-        });
-
-        const temporaryFile = `${outputFile}.tmp`;
-        fs.writeFileSync(temporaryFile, csvOutput);
-        fs.renameSync(temporaryFile, outputFile);
-        completedRecords.add(recordKey);
-        updated++;
-
+        playerData = await getPlayerLanding(player.playerId, logger);
       } catch (error) {
-        failures++;
-        console.log(
-          `Skipping ${player.name} (${seasonId}): ${error.message}`
-        );
+        playerFailures++;
+        logger.error(`Skipping ${player.name}: ${error.message}`);
+        await sleep(1000);
+        continue;
       }
+
+      const nhlSeasons = playerData.seasonTotals.filter(
+        (season) =>
+          season.leagueAbbrev === "NHL" &&
+          season.gameTypeId === 2
+      );
+      const completedNhlSeasons = nhlSeasons.filter(
+        (season) =>
+          season.season <= MODEL_CONFIG.latestCompletedSeason
+      );
+
+      const uniqueSeasons = [
+        ...new Set(completedNhlSeasons.map((season) => season.season))
+      ];
+
+      const lastFiveSeasons = seasons
+        ? [...new Set(seasons)].filter((season) => uniqueSeasons.includes(season)).sort()
+        : uniqueSeasons.sort((a, b) => a - b).slice(-5);
+
+      logger.log("\nNHL Regular Season Stats:");
+
+      for (const seasonId of lastFiveSeasons) {
+
+        const recordKey = `${player.playerId}-${seasonId}`;
+
+        if (completedRecords.has(recordKey)) {
+          skippedComplete++;
+          logger.log(`Already collected: ${player.name} (${seasonId})`);
+          continue;
+        }
+
+        try {
+
+          const summaryStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "summary",
+            logger
+          );
+
+          const realtimeStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "realtime",
+            logger
+          );
+
+          const timeOnIceStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "timeonice",
+            logger
+          );
+
+          const faceoffStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "faceoffwins",
+            logger
+          );
+
+          const penaltyStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "penalties",
+            logger
+          );
+
+          const goalsForAgainstStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "goalsForAgainst",
+            logger
+          );
+
+          const puckPossessionStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "puckPossessions",
+            logger
+          );
+
+          const summaryShootingStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "summaryshooting",
+            logger
+          );
+
+          const scoringPerGameStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "scoringpergame",
+            logger
+          );
+
+          const scoringRatesStats = await getSkaterStats(
+            player.playerId,
+            seasonId,
+            "scoringRates",
+            logger
+          );
+
+          logger.log(
+            `NHL Summary: ${player.name} (${seasonId})`,
+            summaryStats
+          );
+
+          logger.log(
+            `NHL Realtime: ${player.name} (${seasonId})`,
+            realtimeStats
+          );
+
+          logger.log(
+            `NHL Time on Ice: ${player.name} (${seasonId})`,
+            timeOnIceStats
+          );
+
+          logger.log(
+            `NHL Faceoffs: ${player.name} (${seasonId})`,
+            faceoffStats
+          );
+
+          logger.log(
+            `NHL Penalties: ${player.name} (${seasonId})`,
+            penaltyStats
+          );
+
+          logger.log(
+            `NHL Goals For/Against: ${player.name} (${seasonId})`,
+            goalsForAgainstStats
+          );
+
+          logger.log(
+            `NHL Puck Possession: ${player.name} (${seasonId})`,
+            puckPossessionStats
+          );
+
+          logger.log(
+            `NHL Summary Shooting: ${player.name} (${seasonId})`,
+            summaryShootingStats
+          );
+
+          logger.log(
+            `NHL Scoring Per Game: ${player.name} (${seasonId})`,
+            scoringPerGameStats
+          );
+
+          logger.log(
+            `NHL Five-on-Five Scoring: ${player.name} (${seasonId})`,
+            scoringRatesStats
+          );
+
+          const seasonRecords = completedNhlSeasons.filter(
+            (season) => season.season === seasonId
+          );
+
+          const teams = [
+            ...new Set(
+              seasonRecords.map(
+                (season) => season.teamName?.default ?? player.teamAbbrev
+              )
+            )
+          ];
+
+          const record = {
+            //NHL Summary Stats
+            playerId: player.playerId,
+            player: player.name,
+            position: player.positionCode,
+            season: seasonId,
+            teams: teams.join(","),
+            gamesPlayed: summaryStats?.gamesPlayed ?? null,
+            goals: summaryStats?.goals ?? null,
+            assists: summaryStats?.assists ?? null,
+            totalPrimaryAssists: scoringPerGameStats?.totalPrimaryAssists ?? null,
+            totalSecondaryAssists: scoringPerGameStats?.totalSecondaryAssists ?? null,
+            points: summaryStats?.points ?? null,
+            shots: summaryStats?.shots ?? null,
+            avgToi: summaryStats?.timeOnIcePerGame ?? null,
+            powerPlayPoints: summaryStats?.ppPoints ?? null,
+            plusMinus: summaryStats?.plusMinus ?? null,
+            evenStrengthGoals: summaryStats?.evGoals ?? null,
+            evenStrengthPoints: summaryStats?.evPoints ?? null,
+            shootingPct: summaryStats?.shootingPct ?? null,
+            faceoffWinPct: summaryStats?.faceoffWinPct ?? null,
+            // NHL Five-on-Five Scoring Stats
+            goals5v5: scoringRatesStats?.goals5v5 ?? null,
+            assists5v5: scoringRatesStats?.assists5v5 ?? null,
+            primaryAssists5v5: scoringRatesStats?.primaryAssists5v5 ?? null,
+            secondaryAssists5v5: scoringRatesStats?.secondaryAssists5v5 ?? null,
+            points5v5: scoringRatesStats?.points5v5 ?? null,
+            goalsPer605v5: scoringRatesStats?.goalsPer605v5 ?? null,
+            assistsPer605v5: scoringRatesStats?.assistsPer605v5 ?? null,
+            primaryAssistsPer605v5: scoringRatesStats?.primaryAssistsPer605v5 ?? null,
+            secondaryAssistsPer605v5: scoringRatesStats?.secondaryAssistsPer605v5 ?? null,
+            pointsPer605v5: scoringRatesStats?.pointsPer605v5 ?? null,
+            timeOnIcePerGame5v5ScoringRates: scoringRatesStats?.timeOnIcePerGame5v5 ?? null,
+            //NHL Realtime Stats
+            totalShotAttempts: realtimeStats?.totalShotAttempts ?? null,
+            missedShots: realtimeStats?.missedShots ?? null,
+            shotAttemptsBlocked: realtimeStats?.shotAttemptsBlocked ?? null,
+            blockedShots: realtimeStats?.blockedShots ?? null,
+            giveaways: realtimeStats?.giveaways ?? null,
+            takeaways: realtimeStats?.takeaways ?? null,
+            hits: realtimeStats?.hits ?? null,
+            //NHL Time on Ice Stats
+            timeOnIce: timeOnIceStats?.timeOnIce ?? null,
+            evTimeOnIce: timeOnIceStats?.evTimeOnIce ?? null,
+            ppTimeOnIce: timeOnIceStats?.ppTimeOnIce ?? null,
+            shTimeOnIce: timeOnIceStats?.shTimeOnIce ?? null,
+            otTimeOnIce: timeOnIceStats?.otTimeOnIce ?? null,
+            shifts: timeOnIceStats?.shifts ?? null,
+            shiftsPerGame: timeOnIceStats?.shiftsPerGame ?? null,
+            timeOnIcePerShift: timeOnIceStats?.timeOnIcePerShift ?? null,
+            // NHL Faceoff Stats
+            totalFaceoffs: faceoffStats?.totalFaceoffs ?? null,
+            totalFaceoffWins: faceoffStats?.totalFaceoffWins ?? null,
+            totalFaceoffLosses: faceoffStats?.totalFaceoffLosses ?? null,
+            defensiveZoneFaceoffs: faceoffStats?.defensiveZoneFaceoffs ?? null,
+            defensiveZoneFaceoffWins: faceoffStats?.defensiveZoneFaceoffWins ?? null,
+            defensiveZoneFaceoffLosses: faceoffStats?.defensiveZoneFaceoffLosses ?? null,
+            offensiveZoneFaceoffs: faceoffStats?.offensiveZoneFaceoffs ?? null,
+            offensiveZoneFaceoffWins: faceoffStats?.offensiveZoneFaceoffWins ?? null,
+            offensiveZoneFaceoffLosses: faceoffStats?.offensiveZoneFaceoffLosses ?? null,
+            neutralZoneFaceoffs: faceoffStats?.neutralZoneFaceoffs ?? null,
+            neutralZoneFaceoffWins: faceoffStats?.neutralZoneFaceoffWins ?? null,
+            neutralZoneFaceoffLosses: faceoffStats?.neutralZoneFaceoffLosses ?? null,
+            evFaceoffs: faceoffStats?.evFaceoffs ?? null,
+            evFaceoffsWon: faceoffStats?.evFaceoffsWon ?? null,
+            evFaceoffsLost: faceoffStats?.evFaceoffsLost ?? null,
+            ppFaceoffs: faceoffStats?.ppFaceoffs ?? null,
+            ppFaceoffsWon: faceoffStats?.ppFaceoffsWon ?? null,
+            ppFaceoffsLost: faceoffStats?.ppFaceoffsLost ?? null,
+            shFaceoffs: faceoffStats?.shFaceoffs ?? null,
+            shFaceoffsWon: faceoffStats?.shFaceoffsWon ?? null,
+            shFaceoffsLost: faceoffStats?.shFaceoffsLost ?? null,
+            // NHL Penalty Stats
+            penalties: penaltyStats?.penalties ?? null,
+            minorPenalties: penaltyStats?.minorPenalties ?? null,
+            majorPenalties: penaltyStats?.majorPenalties ?? null,
+            penaltiesDrawn: penaltyStats?.penaltiesDrawn ?? null,
+            netPenalties: penaltyStats?.netPenalties ?? null,
+            penaltyMinutes: penaltyStats?.penaltyMinutes ?? null,
+            penaltiesDrawnPer60: penaltyStats?.penaltiesDrawnPer60 ?? null,
+            penaltiesTakenPer60: penaltyStats?.penaltiesTakenPer60 ?? null,
+            netPenaltiesPer60: penaltyStats?.netPenaltiesPer60 ?? null,
+            // NHL Goals For/Against Stats
+            evenStrengthGoalsFor: goalsForAgainstStats?.evenStrengthGoalsFor ?? null,
+            evenStrengthGoalsAgainst: goalsForAgainstStats?.evenStrengthGoalsAgainst ?? null,
+            evenStrengthGoalDifference: goalsForAgainstStats?.evenStrengthGoalDifference ?? null,
+            evenStrengthGoalsForPct: goalsForAgainstStats?.evenStrengthGoalsForPct ?? null,
+            evenStrengthTimeOnIcePerGame: goalsForAgainstStats?.evenStrengthTimeOnIcePerGame ?? null,
+            powerPlayGoalFor: goalsForAgainstStats?.powerPlayGoalFor ?? null,
+            powerPlayGoalsAgainst: goalsForAgainstStats?.powerPlayGoalsAgainst ?? null,
+            powerPlayTimeOnIcePerGame: goalsForAgainstStats?.powerPlayTimeOnIcePerGame ?? null,
+            shortHandedGoalsFor: goalsForAgainstStats?.shortHandedGoalsFor ?? null,
+            shortHandedGoalsAgainst: goalsForAgainstStats?.shortHandedGoalsAgainst ?? null,
+            shortHandedTimeOnIcePerGame: goalsForAgainstStats?.shortHandedTimeOnIcePerGame ?? null,
+            // NHL Puck Possession Stats
+            satPct: puckPossessionStats?.satPct ?? null,
+            usatPct: puckPossessionStats?.usatPct ?? null,
+            goalsPct: puckPossessionStats?.goalsPct ?? null,
+            onIceShootingPct: puckPossessionStats?.onIceShootingPct ?? null,
+            individualSatForPer60: puckPossessionStats?.individualSatForPer60 ?? null,
+            individualShotsForPer60: puckPossessionStats?.individualShotsForPer60 ?? null,
+            defensiveZoneStartPct: puckPossessionStats?.defensiveZoneStartPct ?? null,
+            offensiveZoneStartPct: puckPossessionStats?.offensiveZoneStartPct ?? null,
+            neutralZoneStartPct: puckPossessionStats?.neutralZoneStartPct ?? null,
+            offensiveZoneStartRatio: puckPossessionStats?.offensiveZoneStartRatio ?? null,
+            faceoffPct5v5: puckPossessionStats?.faceoffPct5v5 ?? null,
+            timeOnIcePerGame5v5: puckPossessionStats?.timeOnIcePerGame5v5 ?? null,
+            // NHL Summary Shooting Stats
+            satFor: summaryShootingStats?.satFor ?? null,
+            satAgainst: summaryShootingStats?.satAgainst ?? null,
+            satTotal: summaryShootingStats?.satTotal ?? null,
+            satRelative: summaryShootingStats?.satRelative ?? null,
+            satAhead: summaryShootingStats?.satAhead ?? null,
+            satBehind: summaryShootingStats?.satBehind ?? null,
+            satTied: summaryShootingStats?.satTied ?? null,
+            satClose: summaryShootingStats?.satClose ?? null,
+            usatFor: summaryShootingStats?.usatFor ?? null,
+            usatAgainst: summaryShootingStats?.usatAgainst ?? null,
+            usatTotal: summaryShootingStats?.usatTotal ?? null,
+            usatRelative: summaryShootingStats?.usatRelative ?? null,
+            usatAhead: summaryShootingStats?.usatAhead ?? null,
+            usatBehind: summaryShootingStats?.usatBehind ?? null,
+            usatTied: summaryShootingStats?.usatTied ?? null,
+            usatClose: summaryShootingStats?.usatClose ?? null,
+            timeOnIcePerGame5v5SummaryShooting: summaryShootingStats?.timeOnIcePerGame5v5 ?? null
+          };
+
+          if (!isCompleteRecord(record)) {
+            throw new Error("Required core statistics missing; existing row preserved");
+          }
+
+          const existingIndex = allRecords.findIndex(
+            (saved) =>
+              `${saved.playerId}-${saved.season}` === recordKey
+          );
+
+          if (existingIndex >= 0) {
+            allRecords[existingIndex] = record;
+          } else {
+            allRecords.push(record);
+          }
+
+
+          // Save progress after each completed player-season
+          const columns = [
+            ...new Set(allRecords.flatMap((saved) => Object.keys(saved)))
+          ];
+
+          const csvOutput = stringify(allRecords, {
+            header: true,
+            columns
+          });
+
+          const temporaryFile = `${outputFile}.tmp`;
+          fs.writeFileSync(temporaryFile, csvOutput);
+          fs.renameSync(temporaryFile, outputFile);
+          completedRecords.add(recordKey);
+          updated++;
+
+        } catch (error) {
+          failures++;
+          logger.error(
+            `Skipping ${player.name} (${seasonId}): ${error.message}`
+          );
+        }
+      }
+
+      await sleep(1000);
+    }
+    const hasFailures = failures > 0 || playerFailures > 0;
+
+    const summary = {
+      status: hasFailures ? "Completed with failures" : "Completed",
+      finishedAt: new Date().toISOString(),
+      durationSeconds: Number(
+        ((Date.now() - startedAt) / 1000).toFixed(1)
+      ),
+      playerSeasonsSaved: updated,
+      playerSeasonsAlreadyComplete: skippedComplete,
+      failedPlayerSeasons: failures,
+      failedPlayers: playerFailures,
+      totalRecordsInDataset: allRecords.length,
+      outputFile,
+      logFile: logger.logFile
+    };
+
+    if (hasFailures) {
+      logger.error("Collection summary", summary);
+      process.exitCode = 1;
+    } else {
+      logger.log("Collection summary", summary);
     }
 
-    await sleep(1000);
-  }
-  console.log(`Updated: ${updated}; failed player-seasons: ${failures}`);
-  console.log("\nPuckTrax Dataset:");
-  console.table(allRecords);
+    return summary;
+  } catch (error) {
+    logger.error("Collection stopped early", {
+      finishedAt: new Date().toISOString(),
+      durationSeconds: Number(
+        ((Date.now() - startedAt) / 1000).toFixed(1)
+      ),
+      outputFile,
+      error: error.stack ?? String(error)
+    });
 
-  console.log(
-    `\nCollection finished. ${allRecords.length} player-season records saved.`
-  );
+    process.exitCode = 1;
+    throw error;
+  } finally {
+    process.removeListener("SIGINT", onInterrupt);
+    process.removeListener("SIGTERM", onTerminate);
+  }
 }
 
 module.exports = { collectPlayers, isCompleteRecord, REQUIRED_FIELDS };  
