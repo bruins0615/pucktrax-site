@@ -32,9 +32,9 @@ Archiving a backfill is not just moving a file: both currently resolve `data/ska
 Run these individually and confirm successful completion:
 
 ```sh
-node scripts/collect-league-reference.js
-node scripts/collect-powerplay-reference.js
-node scripts/collect-team-reference.js
+node scripts/collectors/collect-league-reference.js
+node scripts/collectors/collect-powerplay-reference.js
+node scripts/collectors/collect-team-reference.js
 ```
 
 The first two provide required scoring inputs. Team context is independent and is not added to the offensive index. Collectors make public NHL requests and may wait or retry. Their outputs are separate files under `data/league-reference/`.
@@ -42,7 +42,7 @@ The first two provide required scoring inputs. Team context is independent and i
 ### Rating rebuild
 
 ```sh
-node scripts/calculate-offensive-ratings.js
+node scripts/models/calculate-offensive-ratings.js
 ```
 
 This reads local reference files and writes the three files under `data/offensive-ratings/`. It does not require recollecting the detailed comparison-player CSV. Rebuilding ratings alone is fast.
@@ -54,7 +54,7 @@ These fingerprints identify the exact inputs used for a rating rebuild. They do 
 ### Detailed comparison-player collection
 
 ```sh
-node scripts/collect-contract-players.js
+node scripts/collectors/collect-contract-players.js
 ```
 
 Uses contract names, selected available completed seasons, and `data/skater-performance.csv`. This does not build the league-wide reference or ratings. It skips rows considered complete, so it is not a live-season refresh mechanism.
@@ -62,14 +62,14 @@ Uses contract names, selected available completed seasons, and `data/skater-perf
 ### Bruins preview
 
 ```sh
-node scripts/collect-bruins.js
-node scripts/collect-bruins.js --season-roster
+node scripts/collectors/collect-bruins.js
+node scripts/collectors/collect-bruins.js --season-roster
 ```
 
 These commands preview alternate roster sources and do not collect statistics. The user confirmed the season-specific list looked expected. The current implementation still rejects `--season-roster --collect`.
 
 ```sh
-node scripts/collect-bruins.js --collect
+node scripts/collectors/collect-bruins.js --collect
 ```
 
 Collects from a valid current-roster response into the separate Bruins CSV. It will not silently substitute the season roster. Completion of that collection has not been established in this audit.

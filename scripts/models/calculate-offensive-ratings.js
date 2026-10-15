@@ -3,13 +3,13 @@ const path = require("node:path");
 const { parse } = require("csv-parse/sync");
 const { stringify } = require("csv-stringify/sync");
 
-const { atomicWrite } = require("./collect-league-reference");
+const { atomicWrite } = require("../collectors/collect-league-reference");
 
 const { createHash } = require("node:crypto");
 
 const REFERENCE_DIRECTORY = path.resolve("data/league-reference");
 
-const MODEL_CONFIG = require("../config/model-config");
+const MODEL_CONFIG = require("../../config/model-config");
 
 const HISTORICAL_SEASONS =
     MODEL_CONFIG.historicalSeasons.map(String);

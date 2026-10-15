@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { stringify } = require('csv-stringify/sync');
-const MODEL_CONFIG = require("../config/model-config");
+const MODEL_CONFIG = require("../../config/model-config");
 const SEASONS = MODEL_CONFIG.historicalSeasons;
 const METRICS = ['goalsPer605v5', 'primaryAssistsPer605v5', 'secondaryAssistsPer605v5', 'individualShotsForPer60'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

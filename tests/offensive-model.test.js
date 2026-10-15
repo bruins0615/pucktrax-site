@@ -6,16 +6,16 @@ const {
     calculateSeasonScore,
     addPercentileRatings,
     buildHistoricalScores
-} = require("../scripts/calculate-offensive-ratings");
+} = require("../scripts/models/calculate-offensive-ratings");
 
 const {
     buildReference,
     calculateBaselines
-} = require("../scripts/collect-league-reference");
+} = require("../scripts/collectors/collect-league-reference");
 
 const {
     buildPowerPlayReference
-} = require("../scripts/collect-powerplay-reference");
+} = require("../scripts/collectors/collect-powerplay-reference");
 
 test("missing numbers are rejected, but zero is valid", () => {
     assert.equal(requireNumber("0", "test value"), 0);

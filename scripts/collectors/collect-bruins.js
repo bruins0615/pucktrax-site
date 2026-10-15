@@ -1,8 +1,8 @@
 // Preview the current NHL roster by default. Collection requires --collect.
 const fs = require("fs");
-const { collectPlayers } = require("./skater-collector");
+const { collectPlayers } = require("../lib/skater-collector");
 
-const MODEL_CONFIG = require("../config/model-config");
+const MODEL_CONFIG = require("../../config/model-config");
 
 const rosterSeasonId = String(MODEL_CONFIG.rosterSeason);
 
@@ -31,7 +31,7 @@ function normalizeRoster(roster) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.some((arg) => !["--collect", "--season-roster"].includes(arg))) {
-    throw new Error("Usage: node scripts/collect-bruins.js [--collect | --season-roster]");
+    throw new Error("Usage: node scripts/collectors/collect-bruins.js [--collect | --season-roster]");
   }
   const seasonPreview = args.includes("--season-roster");
   if (seasonPreview && args.includes("--collect")) {

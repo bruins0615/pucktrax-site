@@ -2,16 +2,16 @@
 
 The collector now separates which players to collect from how their reports are collected.
 
-- `scripts/collect-contract-players.js`: contract CSV names; preserves the original comparison-player command and last-five-available-seasons behavior, capped at 2025–26.
-- `scripts/collect-bruins.js`: current roster IDs; historical seasons 2023–24, 2024–25, and 2025–26. Historical statistics include previous teams. Goalies excluded.
-- `scripts/skater-collector.js`: shared requests, retries, report mappings, core-field completeness, record replacement, and CSV saving.
+- `scripts/collectors/collect-contract-players.js`: contract CSV names; preserves the original comparison-player command and last-five-available-seasons behavior, capped at 2025–26.
+- `scripts/collectors/collect-bruins.js`: current roster IDs; historical seasons 2023–24, 2024–25, and 2025–26. Historical statistics include previous teams. Goalies excluded.
+- `scripts/lib/skater-collector.js`: shared requests, retries, report mappings, core-field completeness, record replacement, and CSV saving.
 
 Run commands from the project root.
 
 ## Bruins preview
 
 ```sh
-node scripts/collect-bruins.js
+node scripts/collectors/collect-bruins.js
 ```
 
 Default mode fetches and validates the NHL current roster, prints the skaters, and does not write data. On October 15, 2026, that endpoint returned an empty body during verification. The script reports that as an error; it never silently substitutes a different roster.
@@ -19,7 +19,7 @@ Default mode fetches and validates the NHL current roster, prints the skaters, a
 A separate season-roster preview is available:
 
 ```sh
-node scripts/collect-bruins.js --season-roster
+node scripts/collectors/collect-bruins.js --season-roster
 ```
 
 The explicit 2026–27 roster endpoint returned 21 skaters and two excluded goalies. A season roster is not confirmed to be the active roster. This fallback is preview-only and cannot be combined with collection. Verify active membership before deciding how to handle unavailable current-roster responses.
@@ -29,7 +29,7 @@ The explicit 2026–27 roster endpoint returned 21 skaters and two excluded goal
 Once the current roster returns valid data and its membership has been reviewed:
 
 ```sh
-node scripts/collect-bruins.js --collect
+node scripts/collectors/collect-bruins.js --collect
 ```
 
 This writes `data/bruins-skater-performance.csv`, separate from the comparison-player CSV and its backfills. It does not collect live 2026–27 statistics. A selected player with no NHL appearances in a requested completed season contributes no row for that season; no zero season is invented.

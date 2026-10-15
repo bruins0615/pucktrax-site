@@ -86,7 +86,7 @@ No regression or reliability adjustment is applied. Exposure and historical cove
 
 ## Saved implementation and outputs
 
-The user built `scripts/calculate-offensive-ratings.js` with guided edits. It reads local league-reference CSVs without API calls and saves:
+The user built `scripts/models/calculate-offensive-ratings.js` with guided edits. It reads local league-reference CSVs without API calls and saves:
 
 - `data/offensive-ratings/season-offensive-ratings.csv`: all 2,784 player-season rows, including 2,225 scored records and 559 unscored rows.
 - `data/offensive-ratings/historical-offensive-ratings.csv`: 1,196 players, including 957 rated and 239 without eligible history.

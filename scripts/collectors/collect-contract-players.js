@@ -1,7 +1,7 @@
 // Contract names select the comparison group; collection logic is shared.
 const fs = require("fs");
 const { parse } = require("csv-parse/sync");
-const { collectPlayers } = require("./skater-collector");
+const { collectPlayers } = require("../lib/skater-collector");
 const contracts = parse(fs.readFileSync("data/nhlcontracts.csv", "utf8"), {
   columns: true, skip_empty_lines: true
 });

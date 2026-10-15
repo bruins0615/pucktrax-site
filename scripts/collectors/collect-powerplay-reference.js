@@ -9,7 +9,7 @@ const {
     calculateBaselines
 } = require("./collect-league-reference");
 
-const MODEL_CONFIG = require("../config/model-config");
+const MODEL_CONFIG = require("../../config/model-config");
 
 const SEASONS = MODEL_CONFIG.historicalSeasons;
 

@@ -4,7 +4,7 @@ const { stringify } = require("csv-stringify/sync");
 
 const { createRunLogger } = require("./run-logger");
 
-const MODEL_CONFIG = require("../config/model-config");
+const MODEL_CONFIG = require("../../config/model-config");
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
