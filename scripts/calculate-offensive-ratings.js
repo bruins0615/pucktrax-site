@@ -5,6 +5,8 @@ const { stringify } = require("csv-stringify/sync");
 
 const { atomicWrite } = require("./collect-league-reference");
 
+const { createHash } = require("node:crypto");
+
 const REFERENCE_DIRECTORY = path.resolve("data/league-reference");
 
 const MODEL_CONFIG = require("../config/model-config");
@@ -16,13 +18,21 @@ const METRIC_WEIGHTS = MODEL_CONFIG.fiveOnFiveWeights;
 
 const PP_COEFFICIENT = MODEL_CONFIG.powerPlayCoefficient;
 
-function readReference(filename) {
-    const text = fs.readFileSync(
-        path.join(REFERENCE_DIRECTORY, filename),
-        "utf8"
+function readReference(filename, sourceFingerprints) {
+    const contents = fs.readFileSync(
+        path.join(REFERENCE_DIRECTORY, filename)
     );
 
-    return parse(text, {
+    sourceFingerprints.push({
+        path: `data/league-reference/${filename}`,
+        algorithm: "sha256",
+        hash: createHash("sha256")
+            .update(contents)
+            .digest("hex"),
+        bytes: contents.length
+    });
+
+    return parse(contents.toString("utf8"), {
         columns: true,
         skip_empty_lines: true
     });
@@ -277,9 +287,22 @@ function buildHistoricalScores(seasonScores) {
 }
 
 function main() {
-    const skaters = readReference("skaters.csv");
-    const baselines = readReference("baselines.csv");
-    const powerPlay = readReference("powerplay-skaters.csv");
+    const sourceFingerprints = [];
+
+    const skaters = readReference(
+        "skaters.csv",
+        sourceFingerprints
+    );
+
+    const baselines = readReference(
+        "baselines.csv",
+        sourceFingerprints
+    );
+
+    const powerPlay = readReference(
+        "powerplay-skaters.csv",
+        sourceFingerprints
+    );
 
     console.log(`Loaded ${skaters.length} skater-season records.`);
     console.log(`Loaded ${baselines.length} five-on-five baselines.`);
@@ -478,6 +501,7 @@ function main() {
                 "data/league-reference/baselines.csv",
                 "data/league-reference/powerplay-skaters.csv"
             ],
+            sourceFingerprints,
             outputCounts: {
                 seasonRecords: seasonRatings.length,
                 historicalRecords: historicalRatings.length

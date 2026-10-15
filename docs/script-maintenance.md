@@ -47,7 +47,9 @@ node scripts/calculate-offensive-ratings.js
 
 This reads local reference files and writes the three files under `data/offensive-ratings/`. It does not require recollecting the detailed comparison-player CSV. Rebuilding ratings alone is fast.
 
-The reference collectors save metadata per run, but the scoring metadata currently lists source filenames without fingerprints. Avoid treating mismatched collection snapshots as a verified reproducible release. Capturing hashes/snapshot identity is a planned improvement.
+The scoring metadata records each of the three scoring input files in `sourceFingerprints`, including its path, SHA-256 hash, and size in bytes. Each fingerprint is calculated from the same contents parsed for scoring.
+
+These fingerprints identify the exact inputs used for a rating rebuild. They do not archive those inputs or automatically detect stale ratings. Verification confirmed all three fingerprints matched their source files, all seven offline tests passed, and both rating CSVs remained unchanged.
 
 ### Detailed comparison-player collection
 
@@ -76,7 +78,7 @@ Collects from a valid current-roster response into the separate Bruins CSV. It w
 
 1. **Centralize seasons and model constants.** The three completed seasons are repeated in four reference/scoring scripts and the Bruins entry point; the shared detailed collector also has a hardcoded latest completed-season cap, and the roster preview specifies 2026–27. Use an explicit shared completed-season configuration, with live Current Trend a separate future mode. Do not silently reinterpret the frozen historical window based on today's date.
 2. **Make executable scripts safe to import.** Team/PP/scoring scripts currently call `main()` unconditionally. Add `require.main === module` guards and explicit exports before building a small reusable offline verification suite.
-3. **Add source snapshot identity to scoring metadata.** Hash each exact input file and include relevant reference metadata or an explicit snapshot ID. Ensure provenance corresponds to the bytes used for calculation.
+3. **Completed: source fingerprints in scoring metadata.** Each scoring input now has a SHA-256 hash and byte count captured during reading. Automatic stale-input detection remains a possible future improvement.
 4. **Improve names and shared helpers.** Rename the contracts entry point and move `fetchReport`, `indexReport`, baseline calculation, and atomic writing to a neutral shared module. Update imports together; preserve old command compatibility while learning.
 5. **Harden error reporting.** Detailed request helpers and backfills lack explicit request timeouts; backfills log errors without setting a failed exit code. Detailed collection can report failed player-seasons but finish successfully at the process level. Review these before scheduled unattended collection.
 6. **Validate grouped baseline inputs explicitly.** The baseline helper currently relies on callers to provide finite eligible metric values. Add clear rejection rather than allowing invalid arithmetic if new callers appear.

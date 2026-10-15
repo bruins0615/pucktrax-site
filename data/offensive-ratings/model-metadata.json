@@ -1,6 +1,6 @@
 {
   "modelVersion": "offense-v1-provisional",
-  "generatedAt": "2026-10-15T16:51:08.554Z",
+  "generatedAt": "2026-10-15T19:41:08.161Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
@@ -28,6 +28,26 @@
     "data/league-reference/skaters.csv",
     "data/league-reference/baselines.csv",
     "data/league-reference/powerplay-skaters.csv"
+  ],
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/skaters.csv",
+      "algorithm": "sha256",
+      "hash": "b24c9a46578284a233ed67a721cfa3c3d0af92f901e781e17d0f5388aea063d7",
+      "bytes": 272004
+    },
+    {
+      "path": "data/league-reference/baselines.csv",
+      "algorithm": "sha256",
+      "hash": "1518c239dde67190c48635a32e950f4497564a1512a6c68190f7f3438b29a789",
+      "bytes": 4163
+    },
+    {
+      "path": "data/league-reference/powerplay-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "c1fce5be97c880768b17d117f966754ad7cd2591f5fc99eb00e1cf5ec5b9b97e",
+      "bytes": 301743
+    }
   ],
   "outputCounts": {
     "seasonRecords": 2784,
