@@ -1,4 +1,5 @@
 import PowerPlayTeamComparison from "./power-play-team-comparison";
+import modelConfig from "../config/model-config";
 
 function number(value) {
     if (value == null || String(value).trim() === "") {
@@ -44,6 +45,34 @@ function Stat({ label, value }) {
     );
 }
 
+function Opportunity({ seconds, minimum, situation }) {
+    const total = number(seconds);
+    const minutes = total === null || total < 0
+        ? null
+        : total / 60;
+
+    const status =
+        minutes === null
+            ? "Opportunity unavailable"
+            : minutes === 0
+                ? "No opportunity"
+                : minutes >= minimum
+                    ? "Eligible sample"
+                    : "Limited opportunity";
+
+    return (
+        <div className="text-right">
+            <p className="rounded bg-sky-400/10 px-2 py-1 text-xs text-sky-300">
+                {minutes === null ? "—" : minutes.toFixed(1)}{" "}
+                {situation} minutes · {status}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-400">
+                Sample minimum: {minimum} minutes
+            </p>
+        </div>
+    );
+}
+
 export default function SpecialTeamsPanel({ player, powerPlay }) {
     if (!player) {
         return (
@@ -73,7 +102,14 @@ export default function SpecialTeamsPanel({ player, powerPlay }) {
             </p>
 
             <section className="mt-6">
-                <h3 className="text-[15px] font-semibold">Power play</h3>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h3 className="text-[15px] font-semibold">Power play</h3>
+                    <Opportunity
+                        seconds={player.ppTimeOnIce}
+                        minimum={modelConfig.minimumPowerPlayMinutes}
+                        situation="PP"
+                    />
+                </div>
 
                 <dl className="mt-5 grid gap-6 sm:grid-cols-3">
                     <Stat
@@ -94,7 +130,14 @@ export default function SpecialTeamsPanel({ player, powerPlay }) {
             </section>
 
             <section className="mt-8 border-t border-slate-700 pt-6">
-                <h3 className="text-[15px] font-semibold">Shorthanded</h3>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h3 className="text-[15px] font-semibold">Shorthanded</h3>
+                    <Opportunity
+                        seconds={player.shTimeOnIce}
+                        minimum={modelConfig.minimumShortHandedMinutes}
+                        situation="SH"
+                    />
+                </div>
 
                 <dl className="mt-5 grid gap-6 sm:grid-cols-3">
                     <Stat
