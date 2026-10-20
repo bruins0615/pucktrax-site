@@ -14,7 +14,8 @@ const {
 } = require("../scripts/collectors/collect-league-reference");
 
 const {
-    buildPowerPlayReference
+    buildPowerPlayReference,
+    buildCoreReference
 } = require("../scripts/collectors/collect-powerplay-reference");
 
 const {
@@ -451,5 +452,43 @@ test("SH samples preserve production and use their own 75-minute cutoff", () => 
 
     for (const seconds of [null, -1, NaN, Infinity]) {
         assert.throws(() => build(seconds, 0), /Invalid SH ice time/);
+    }
+});
+
+test("core statistics preserve zeros and validate scoring totals", () => {
+    const player = {
+        playerId: 1,
+        seasonId: 20252026,
+        skaterFullName: "Example Player",
+        positionCode: "D",
+        teamAbbrevs: "BOS",
+        gamesPlayed: 10,
+        goals: 0,
+        assists: 3,
+        points: 3,
+        plusMinus: -2
+    };
+
+    const [result] = buildCoreReference([player], 20252026);
+
+    assert.equal(result.goals, 0);
+    assert.equal(result.points, 3);
+    assert.equal(result.plusMinus, -2);
+    assert.equal(result.teams, "BOS");
+
+    for (const changes of [
+        { goals: null },
+        { assists: -1 },
+        { points: 4 },
+        { plusMinus: null },
+        { gamesPlayed: 0 }
+    ]) {
+        assert.throws(
+            () => buildCoreReference(
+                [{ ...player, ...changes }],
+                20252026
+            ),
+            /Invalid core statistics/
+        );
     }
 });

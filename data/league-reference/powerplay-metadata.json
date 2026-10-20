@@ -1,5 +1,5 @@
 {
-  "collectedAt": "2026-10-20T18:22:30.282Z",
+  "collectedAt": "2026-10-20T21:02:19.437Z",
   "seasons": [
     20232024,
     20242025,
@@ -36,6 +36,8 @@
     "powerPlayPointsPerGame",
     "teamOnIcePowerPlayGoalsPerGame"
   ],
+  "coreStatisticsOutput": "data/league-reference/core-skaters.csv",
+  "coreStatisticsPolicy": "All-situation regular-season totals from the summary report. Team abbreviations describe season affiliations, not current roster membership.",
   "standardDeviation": "Population",
   "weighting": "Each eligible skater equally weighted",
   "note": "Individual PP points/game and team on-ice PP goals/game both use all recorded games played as the denominator. Baselines include only players with at least 75 PP minutes. Team on-ice PP goals/game is descriptive context only and does not contribute to the offensive rating."

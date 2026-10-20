@@ -153,3 +153,19 @@ Missing values remain unavailable rather than becoming zero.
 
 SH scoring remains bonus context only. No SH baseline or offensive-rating
 contribution is calculated. Eleven offline model/reference tests pass.
+
+## League-wide core statistics
+
+The power-play reference collector also saves `core-skaters.csv` from
+its existing NHL summary response, without additional API requests.
+
+This file contains all-situation regular-season games, goals, assists,
+points, plus/minus, and season team abbreviations.
+
+The player page matches records by player ID and season, preserving
+additional detailed fields where available while using league-wide
+core values for the sidebar. Team abbreviations describe historical
+season affiliations, not verified current roster membership.
+
+This expands display coverage without changing offensive scoring.
+Twelve offline model/reference tests pass.

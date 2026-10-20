@@ -18,6 +18,46 @@ const PP_METRICS = [
     "teamOnIcePowerPlayGoalsPerGame"
 ];
 
+function buildCoreReference(summary, season) {
+    const players = indexReport(summary, season);
+
+    return [...players.values()].map((player) => {
+        const counts = [
+            player.goals,
+            player.assists,
+            player.points
+        ];
+
+        if (
+            !["C", "L", "R", "D"].includes(player.positionCode) ||
+            !Number.isInteger(player.gamesPlayed) ||
+            player.gamesPlayed <= 0 ||
+            counts.some(
+                (value) => !Number.isInteger(value) || value < 0
+            ) ||
+            !Number.isInteger(player.plusMinus) ||
+            player.goals + player.assists !== player.points
+        ) {
+            throw new Error(
+                `Invalid core statistics: ${player.playerId}, ${season}`
+            );
+        }
+
+        return {
+            season,
+            playerId: player.playerId,
+            player: player.skaterFullName,
+            position: player.positionCode,
+            teams: player.teamAbbrevs ?? "",
+            gamesPlayed: player.gamesPlayed,
+            goals: player.goals,
+            assists: player.assists,
+            points: player.points,
+            plusMinus: player.plusMinus
+        };
+    });
+}
+
 function buildPowerPlayReference(summary, iceTime, season, goals) {
     const summaryById = indexReport(summary, season);
     const iceTimeById = indexReport(iceTime, season);
@@ -62,7 +102,6 @@ function buildPowerPlayReference(summary, iceTime, season, goals) {
         const points = player.ppPoints;
         const minutes = seconds / 60;
         const eligible = minutes >= MODEL_CONFIG.minimumPowerPlayMinutes;
-
         const teamGoals = goalStats.powerPlayGoalFor;
 
         if (teamGoals == null && eligible) {
@@ -147,6 +186,7 @@ function buildPowerPlayReference(summary, iceTime, season, goals) {
 
 async function main() {
     const rows = [];
+    const coreRows = [];
     const sources = [];
 
     for (const season of SEASONS) {
@@ -162,6 +202,7 @@ async function main() {
         );
 
         rows.push(...reference);
+        coreRows.push(...buildCoreReference(summary, season));
 
         sources.push({
             season,
@@ -192,6 +233,17 @@ async function main() {
 
     fs.mkdirSync(directory, { recursive: true });
 
+    coreRows.sort(
+        (a, b) =>
+            a.season - b.season ||
+            a.playerId - b.playerId
+    );
+
+    atomicWrite(
+        path.join(directory, "core-skaters.csv"),
+        stringify(coreRows, { header: true })
+    );
+
     atomicWrite(
         path.join(directory, "powerplay-skaters.csv"),
         stringify(rows, { header: true })
@@ -212,6 +264,10 @@ async function main() {
             reports: ["summary", "timeonice", "goalsForAgainst"],
             sources,
             metrics: PP_METRICS,
+            coreStatisticsOutput: "data/league-reference/core-skaters.csv",
+            coreStatisticsPolicy:
+                "All-situation regular-season totals from the summary report. " +
+                "Team abbreviations describe season affiliations, not current roster membership.",
             standardDeviation: "Population",
             weighting: "Each eligible skater equally weighted",
             note:
@@ -250,5 +306,6 @@ if (require.main === module) {
 
 module.exports = {
     buildPowerPlayReference,
+    buildCoreReference,
     PP_METRICS
 };
