@@ -85,9 +85,12 @@ export default async function PlayerPage({ params }) {
                         />
                     </Link>
 
-                    <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-                        The game beneath the surface
-                    </p>
+                    <Link
+                        href="/players"
+                        className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-sky-300 hover:border-sky-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
+                    >
+                        Find a player
+                    </Link>
                 </header>
 
                 <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
