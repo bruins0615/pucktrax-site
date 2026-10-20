@@ -111,3 +111,28 @@ Display games played, totals, plus/minus, and usage as context. Show actual per-
 - Add source fingerprints or an explicit reference snapshot ID for stronger reproducibility in a future iteration.
 - Develop defensive and other categories before an overall player grade or two-way style descriptor.
 - Implement the actual website profile with guided user edits; the conversation mockup is not project website code.
+
+## Player profile and team power-play context
+
+The website player profile reads saved CSV data. Its historical grade
+uses the three-season model; individual season statistics are labeled
+separately. Season history remains available in the sidebar.
+
+Analysis tabs show five-on-five, special teams, and team context.
+
+Team on-ice PP goals/game equals goals scored by the player's team
+while that player was on the power play, divided by all games played.
+
+The positional baseline uses players from the same season and NHL
+position with at least 75 PP minutes. Each eligible player receives
+equal weight; standard deviation uses the population formula.
+
+Below 75 PP minutes, recorded production and the positional average
+remain visible, but the comparison bar and performance label are hidden.
+The display states that the comparison is not rated.
+
+Eligible comparisons use standardized values, with bars clipped at
+±3 standard deviations. These bars are not percentiles.
+
+Team PP comparisons are descriptive context only. They do not change
+the offensive index, PP coefficient, or historical rating.

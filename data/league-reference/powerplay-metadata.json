@@ -1,5 +1,5 @@
 {
-  "collectedAt": "2026-10-15T14:29:11.495Z",
+  "collectedAt": "2026-10-20T18:22:30.282Z",
   "seasons": [
     20232024,
     20242025,
@@ -9,29 +9,34 @@
   "minimumPowerPlayMinutes": 75,
   "reports": [
     "summary",
-    "timeonice"
+    "timeonice",
+    "goalsForAgainst"
   ],
   "sources": [
     {
       "season": 20232024,
       "summaryRows": 924,
-      "iceTimeRows": 924
+      "iceTimeRows": 924,
+      "goalsRows": 924
     },
     {
       "season": 20242025,
       "summaryRows": 920,
-      "iceTimeRows": 920
+      "iceTimeRows": 920,
+      "goalsRows": 920
     },
     {
       "season": 20252026,
       "summaryRows": 940,
-      "iceTimeRows": 940
+      "iceTimeRows": 940,
+      "goalsRows": 940
     }
   ],
   "metrics": [
-    "powerPlayPointsPerGame"
+    "powerPlayPointsPerGame",
+    "teamOnIcePowerPlayGoalsPerGame"
   ],
   "standardDeviation": "Population",
   "weighting": "Each eligible skater equally weighted",
-  "note": "Individual PP points divided by all games played. Baselines include only players with at least 75 PP minutes. Descriptive comparisons only; no PP bonus or weight assigned."
+  "note": "Individual PP points/game and team on-ice PP goals/game both use all recorded games played as the denominator. Baselines include only players with at least 75 PP minutes. Team on-ice PP goals/game is descriptive context only and does not contribute to the offensive rating."
 }

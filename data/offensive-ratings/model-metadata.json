@@ -1,6 +1,6 @@
 {
   "modelVersion": "offense-v1-provisional",
-  "generatedAt": "2026-10-15T19:41:08.161Z",
+  "generatedAt": "2026-10-20T18:33:52.439Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
@@ -45,8 +45,8 @@
     {
       "path": "data/league-reference/powerplay-skaters.csv",
       "algorithm": "sha256",
-      "hash": "c1fce5be97c880768b17d117f966754ad7cd2591f5fc99eb00e1cf5ec5b9b97e",
-      "bytes": 301743
+      "hash": "db2362294e2755ee6fb7ce1c1025de1ef0d92ec7890487d545e4166f825df951",
+      "bytes": 339415
     }
   ],
   "outputCounts": {

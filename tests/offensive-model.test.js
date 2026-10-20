@@ -160,13 +160,31 @@ test("power-play eligibility starts at 75 minutes", () => {
         const [result] = buildPowerPlayReference(
             [{ ...player, ppPoints: 1 }],
             [{ ...player, ppTimeOnIce: totalSeconds }],
-            20252026
+            20252026,
+            [{ ...player, powerPlayGoalFor: 3 }]
         );
 
         assert.equal(result.sampleStatus, expectedStatus);
 
-        // Eligibility must not erase recorded production.
+        // Keep recorded production below the eligibility cutoff.
         assert.equal(result.powerPlayPointsPerGame, 0.1);
+        assert.equal(result.teamOnIcePowerPlayGoals, 3);
+        assert.equal(result.teamOnIcePowerPlayGoalsPerGame, 0.3);
+
+        // Only eligible players contribute to the baseline.
+        const baselines = calculateBaselines(
+            [result],
+            ["teamOnIcePowerPlayGoalsPerGame"]
+        );
+
+        if (expectedStatus === "Eligible") {
+            assert.equal(baselines.length, 1);
+            assert.equal(baselines[0].eligiblePlayers, 1);
+            assert.equal(baselines[0].mean, 0.3);
+            assert.equal(baselines[0].scalingStatus, "Unavailable");
+        } else {
+            assert.equal(baselines.length, 0);
+        }
     }
 });
 
@@ -292,4 +310,68 @@ test("baselines reject invalid eligible values with useful context", () => {
             /Invalid baseline input: exampleMetric for player 123, season 20252026, position D/
         );
     }
+});
+
+test("team PP reference validates goals and matching reports", () => {
+    const player = {
+        playerId: 1,
+        seasonId: 20252026,
+        skaterFullName: "Example Player",
+        positionCode: "C",
+        gamesPlayed: 10
+    };
+
+    function build(teamGoals, seconds = 4500, overrides = {}) {
+        return buildPowerPlayReference(
+            [{ ...player, ppPoints: 0 }],
+            [{ ...player, ppTimeOnIce: seconds }],
+            20252026,
+            [{
+                ...player,
+                powerPlayGoalFor: teamGoals,
+                ...overrides
+            }]
+        )[0];
+    }
+
+    // Zero is valid and remains available for comparison.
+    assert.equal(build(0).teamOnIcePowerPlayGoalsPerGame, 0);
+
+    // Missing data is preserved below the cutoff.
+    const limited = build(null, 4499);
+    assert.equal(limited.teamOnIcePowerPlayGoalsPerGame, null);
+    assert.match(limited.dataStatus, /Team PP goals unavailable/);
+
+    // Eligible players must have recorded team-goal data.
+    assert.throws(
+        () => build(null),
+        /Missing team PP goals for eligible player/
+    );
+
+    for (const value of [-1, 1.5, "3", NaN, Infinity]) {
+        assert.throws(
+            () => build(value),
+            /Invalid team PP goals/
+        );
+    }
+
+    assert.throws(
+        () => build(1, 0),
+        /Team PP goals recorded without PP time/
+    );
+
+    assert.throws(
+        () => build(1, 4500, { positionCode: "D" }),
+        /Position or games mismatch/
+    );
+
+    assert.throws(
+        () => build(1, 4500, { gamesPlayed: 9 }),
+        /Position or games mismatch/
+    );
+
+    assert.throws(
+        () => build(1, 4500, { playerId: 2 }),
+        /Report coverage differs/
+    );
 });

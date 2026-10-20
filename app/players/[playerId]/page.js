@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPlayerRatings } from "../../../lib/player-data";
 import FiveOnFivePanel from "../../../components/five-on-five-panel";
+import PlayerTabs from "../../../components/player-tabs";
+import SpecialTeamsPanel from "../../../components/special-teams-panel";
+import TeamContextPanel from "../../../components/team-context-panel";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -31,8 +34,8 @@ function Stat({ label, value }) {
                 : value;
 
     return (
-        <div className="rounded-xl border border-slate-700 bg-[#080f1c] p-4">
-            <dt className="text-xs font-medium text-slate-400">
+        <div className="py-2">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 {label}
             </dt>
             <dd className="mt-2 text-2xl font-bold tabular-nums">
@@ -50,7 +53,7 @@ export default async function PlayerPage({ params }) {
         notFound();
     }
 
-    const { historical, seasons, coreStats, fiveOnFive } = data;
+    const { historical, seasons, coreStats, fiveOnFive, teamContext, powerPlay } = data;
     const hasRating =
         historical.offenseRating != null &&
         historical.offenseRating !== "";
@@ -86,10 +89,10 @@ export default async function PlayerPage({ params }) {
                     </p>
                 </header>
 
-                <div className="grid items-start gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+                <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
                     <aside
                         aria-label="Player identity and offensive rating"
-                        className="rounded-2xl border border-slate-700 bg-[#101d32] p-6"
+                        className="border-t-[3px] border-t-[#67bdec] pt-5 lg:border-r lg:border-r-slate-700 lg:pr-6"
                     >
                         <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
                             Player profile
@@ -108,44 +111,60 @@ export default async function PlayerPage({ params }) {
                             aria-labelledby="offense-heading"
                             className="mt-6 border-t border-slate-700 pt-6"
                         >
-                            <h2
-                                id="offense-heading"
-                                className="text-sm font-semibold"
-                            >
-                                Historical offensive rating
-                            </h2>
 
-                            <div
-                                aria-label={`Offensive rating: ${hasRating
-                                    ? `${formatRating(historical.offenseRating)} out of 10`
-                                    : "unrated"
-                                    }`}
-                                className="mt-4 flex h-24 w-24 items-center justify-center rounded-2xl border border-sky-400/40 bg-sky-400/10 text-[35px] font-bold tabular-nums"
-                            >
-                                {formatRating(historical.offenseRating)}
+                            <div className="flex items-center gap-4">
+                                <div
+                                    aria-label={`Offensive rating: ${hasRating
+                                        ? `${formatRating(historical.offenseRating)} out of 10`
+                                        : "unrated"
+                                        }`}
+                                    className="flex w-[90px] shrink-0 flex-col items-center rounded-xl border border-slate-700 bg-[#17314b] px-3 py-4"
+                                >
+                                    <h2
+                                        id="offense-heading"
+                                        className="text-[11px] font-medium uppercase tracking-widest text-slate-400"
+                                    >
+                                        Offense
+                                    </h2>
+
+                                    <p className="mt-1 text-[35px] font-bold leading-tight text-white tabular-nums">
+                                        {formatRating(historical.offenseRating)}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-slate-400">
+                                        / 10
+                                    </p>
+                                </div>
+
+                                <div className="min-w-0 space-y-2 text-xs leading-relaxed">
+                                    <p className="font-medium text-white">
+                                        {hasRating
+                                            ? `${Number(historical.percentile).toFixed(1)}th percentile`
+                                            : "Unrated"}
+                                    </p>
+
+                                    <p className="text-slate-400">
+                                        Among NHL{" "}
+                                        {{
+                                            C: "centers",
+                                            L: "left wings",
+                                            R: "right wings",
+                                            D: "defensemen"
+                                        }[historical.position] ?? historical.position}
+                                        {" · "}
+                                        {historicalWindow}
+                                    </p>
+
+                                    <p className="text-slate-400">
+                                        {historical.eligibleSeasons} eligible{" "}
+                                        {Number(historical.eligibleSeasons) === 1
+                                            ? "season"
+                                            : "seasons"}
+                                    </p>
+                                </div>
                             </div>
 
-                            <p className="mt-4 text-lg font-semibold">
-                                {hasRating
-                                    ? `Percentile rank: ${Number(
-                                        historical.percentile
-                                    ).toFixed(1)}`
-                                    : "No eligible historical rating"}
-                            </p>
-
-                            <p className="mt-1 text-sm text-slate-400">
-                                Among NHL positional peers
-                            </p>
-
-                            <p className="mt-3 text-sm text-slate-400">
-                                {historicalWindow} ·{" "}
-                                {historical.eligibleSeasons} eligible{" "}
-                                {Number(historical.eligibleSeasons) === 1
-                                    ? "season"
-                                    : "seasons"}
-                            </p>
-
-                            <p className="mt-2 text-xs text-slate-500">
+                            <p className="mt-3 text-[11px] text-slate-500">
                                 Provisional offense model
                             </p>
 
@@ -221,94 +240,77 @@ export default async function PlayerPage({ params }) {
                                 </p>
                             )}
                         </section>
-                    </aside>
+                        <details className="mt-6 border-t border-slate-700 pt-4">
+                            <summary className="cursor-pointer text-sm text-slate-400">
+                                Three-season offensive history
+                            </summary>
 
-                    <div className="min-w-0 space-y-6">
-                        <FiveOnFivePanel data={fiveOnFive} />
-                        <section
-                            aria-labelledby="history-heading"
-                            className="rounded-2xl border border-slate-700 bg-[#101d32] p-5 sm:p-6"
-                        >
-                            <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-                                Offensive performance
+                            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                                Season ratings compare eligible players at the same NHL
+                                position in that season. The historical grade averages
+                                underlying indices, not these displayed ratings.
                             </p>
 
-                            <h2
-                                id="history-heading"
-                                className="mt-2 text-xl font-semibold"
-                            >
-                                Three-season history
-                            </h2>
+                            <div className="mt-4">
+                                {seasons.map((season) => (
+                                    <div
+                                        key={season.season}
+                                        className="border-b border-slate-800 py-4 last:border-0"
+                                    >
+                                        <div className="flex items-baseline justify-between gap-3">
+                                            <h3 className="text-sm font-semibold">
+                                                {seasonLabel(season.season)}
+                                            </h3>
 
-                            <p className="mt-3 text-sm leading-relaxed text-slate-400">
-                                Each season’s rating compares eligible players
-                                at the same NHL position in that season. The
-                                historical grade uses the underlying indices,
-                                rather than averaging these displayed ratings.
-                            </p>
+                                            <p className="text-xl font-bold text-sky-300 tabular-nums">
+                                                {formatRating(season.offenseRating)}
+                                                <span className="ml-1 text-xs font-normal text-slate-400">
+                                                    /10
+                                                </span>
+                                            </p>
+                                        </div>
 
-                            <div className="mt-5 overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <caption className="sr-only">
-                                        Offensive ratings and recorded playing time
-                                        by season
-                                    </caption>
+                                        <p className="mt-2 text-xs text-slate-400">
+                                            {season.percentile === ""
+                                                ? "Unrated season"
+                                                : `${Number(season.percentile).toFixed(1)}th percentile`}
+                                        </p>
 
-                                    <thead className="border-b border-slate-700 text-slate-400">
-                                        <tr>
-                                            <th scope="col" className="py-3 pr-4">
-                                                Season
-                                            </th>
-                                            <th scope="col" className="py-3 pr-4 text-right">
-                                                Rating
-                                            </th>
-                                            <th scope="col" className="py-3 pr-4 text-right">
-                                                Games
-                                            </th>
-                                            <th scope="col" className="py-3 text-right">
-                                                5v5 min
-                                            </th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {seasons.map((season) => (
-                                            <tr
-                                                key={season.season}
-                                                className="border-b border-slate-800 last:border-0"
-                                            >
-                                                <th
-                                                    scope="row"
-                                                    className="whitespace-nowrap py-4 pr-4 font-medium"
-                                                >
-                                                    {seasonLabel(season.season)}
-                                                </th>
-
-                                                <td className="py-4 pr-4 text-right text-xl font-bold text-sky-300 tabular-nums">
-                                                    {formatRating(season.offenseRating)}
-                                                </td>
-
-                                                <td className="py-4 pr-4 text-right tabular-nums">
-                                                    {season.gamesPlayed}
-                                                </td>
-
-                                                <td className="py-4 text-right tabular-nums">
-                                                    {formatMinutes(
-                                                        season.estimatedMinutes5v5
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        <p className="mt-1 text-xs text-slate-400">
+                                            {season.gamesPlayed} games · ≈
+                                            {formatMinutes(season.estimatedMinutes5v5)} 5v5 min
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
 
-                            <p className="mt-4 text-xs leading-relaxed text-slate-400">
-                                Five-on-five minutes are estimated from the source
-                                report. A dash indicates an unrated season;
-                                zero is a valid rating.
+                            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                                Minutes are estimated. A dash indicates an unrated
+                                season; zero is a valid rating.
                             </p>
-                        </section>
+                        </details>
+                    </aside>
+
+                    <div className="min-w-0">
+                        <PlayerTabs
+                            tabs={[
+                                {
+                                    key: "five-on-five",
+                                    label: "Five-on-five",
+                                    content: <FiveOnFivePanel data={fiveOnFive} />
+                                },
+                                {
+                                    key: "special-teams",
+                                    label: "Special teams",
+                                    content: <SpecialTeamsPanel player={coreStats} powerPlay={powerPlay} />
+                                },
+                                {
+                                    key: "team-context",
+                                    label: "Team context",
+                                    content: <TeamContextPanel data={teamContext} />
+                                }
+                            ]}
+                        />
                     </div>
                 </div>
             </div>

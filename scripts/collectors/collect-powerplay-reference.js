@@ -13,15 +13,21 @@ const MODEL_CONFIG = require("../../config/model-config");
 
 const SEASONS = MODEL_CONFIG.historicalSeasons;
 
-const PP_METRICS = ["powerPlayPointsPerGame"];
+const PP_METRICS = [
+    "powerPlayPointsPerGame",
+    "teamOnIcePowerPlayGoalsPerGame"
+];
 
-function buildPowerPlayReference(summary, iceTime, season) {
+function buildPowerPlayReference(summary, iceTime, season, goals) {
     const summaryById = indexReport(summary, season);
     const iceTimeById = indexReport(iceTime, season);
+    const goalsById = indexReport(goals, season);
 
-    const sameCoverage =
-        summaryById.size === iceTimeById.size &&
-        [...summaryById.keys()].every((id) => iceTimeById.has(id));
+    const sameCoverage = [iceTimeById, goalsById].every(
+        (report) =>
+            report.size === summaryById.size &&
+            [...summaryById.keys()].every((id) => report.has(id))
+    );
 
     if (!sameCoverage) {
         throw new Error(`Report coverage differs for ${season}`);
@@ -29,13 +35,16 @@ function buildPowerPlayReference(summary, iceTime, season) {
 
     return [...summaryById.values()].map((player) => {
         const time = iceTimeById.get(player.playerId);
+        const goalStats = goalsById.get(player.playerId);
 
         if (
             !["C", "L", "R", "D"].includes(player.positionCode) ||
             player.positionCode !== time.positionCode ||
+            player.positionCode !== goalStats.positionCode ||
             !Number.isInteger(player.gamesPlayed) ||
             player.gamesPlayed <= 0 ||
-            player.gamesPlayed !== time.gamesPlayed
+            player.gamesPlayed !== time.gamesPlayed ||
+            player.gamesPlayed !== goalStats.gamesPlayed
         ) {
             throw new Error(
                 `Position or games mismatch: ${player.playerId}, ${season}`
@@ -53,6 +62,29 @@ function buildPowerPlayReference(summary, iceTime, season) {
         const points = player.ppPoints;
         const minutes = seconds / 60;
         const eligible = minutes >= MODEL_CONFIG.minimumPowerPlayMinutes;
+
+        const teamGoals = goalStats.powerPlayGoalFor;
+
+        if (teamGoals == null && eligible) {
+            throw new Error(
+                `Missing team PP goals for eligible player: ${player.playerId}, ${season}`
+            );
+        }
+
+        if (
+            teamGoals != null &&
+            (!Number.isInteger(teamGoals) || teamGoals < 0)
+        ) {
+            throw new Error(
+                `Invalid team PP goals: ${player.playerId}, ${season}`
+            );
+        }
+
+        if (seconds === 0 && teamGoals > 0) {
+            throw new Error(
+                `Team PP goals recorded without PP time: ${player.playerId}, ${season}`
+            );
+        }
 
         // Preserve missing points rather than assuming zero.
         if (points == null && eligible) {
@@ -93,6 +125,9 @@ function buildPowerPlayReference(summary, iceTime, season) {
                 `${displaySeconds % 60}`.padStart(2, "0"),
             powerPlayPointsPerGame:
                 points == null ? null : points / player.gamesPlayed,
+            teamOnIcePowerPlayGoals: teamGoals,
+            teamOnIcePowerPlayGoalsPerGame:
+                teamGoals == null ? null : teamGoals / player.gamesPlayed,
             sampleStatus:
                 seconds === 0
                     ? "No PP opportunity"
@@ -100,7 +135,12 @@ function buildPowerPlayReference(summary, iceTime, season) {
                         ? "Eligible"
                         : "Limited PP opportunity",
             dataStatus:
-                points == null ? "PP points unavailable" : "Complete"
+                points == null || teamGoals == null
+                    ? [
+                        points == null ? "PP points unavailable" : null,
+                        teamGoals == null ? "Team PP goals unavailable" : null
+                    ].filter(Boolean).join("; ")
+                    : "Complete"
         };
     });
 }
@@ -112,11 +152,13 @@ async function main() {
     for (const season of SEASONS) {
         const summary = await fetchReport("summary", season);
         const iceTime = await fetchReport("timeonice", season);
+        const goals = await fetchReport("goalsForAgainst", season);
 
         const reference = buildPowerPlayReference(
             summary,
             iceTime,
-            season
+            season,
+            goals
         );
 
         rows.push(...reference);
@@ -124,7 +166,8 @@ async function main() {
         sources.push({
             season,
             summaryRows: summary.length,
-            iceTimeRows: iceTime.length
+            iceTimeRows: iceTime.length,
+            goalsRows: goals.length
         });
 
         const eligibleCount = reference.filter(
@@ -166,16 +209,18 @@ async function main() {
             seasons: SEASONS,
             gameTypeId: 2,
             minimumPowerPlayMinutes: MODEL_CONFIG.minimumPowerPlayMinutes,
-            reports: ["summary", "timeonice"],
+            reports: ["summary", "timeonice", "goalsForAgainst"],
             sources,
             metrics: PP_METRICS,
             standardDeviation: "Population",
             weighting: "Each eligible skater equally weighted",
             note:
-                "Individual PP points divided by all games played. " +
-                `Baselines include only players with at least ` +
+                "Individual PP points/game and team on-ice PP goals/game " +
+                "both use all recorded games played as the denominator. " +
+                "Baselines include only players with at least " +
                 `${MODEL_CONFIG.minimumPowerPlayMinutes} PP minutes. ` +
-                "Descriptive comparisons only; no PP bonus or weight assigned."
+                "Team on-ice PP goals/game is descriptive context only " +
+                "and does not contribute to the offensive rating."
         }, null, 2) + "\n"
     );
 
@@ -184,7 +229,8 @@ async function main() {
             season: row.season,
             position: row.position,
             players: row.eligiblePlayers,
-            pointsPerGameAverage: row.mean.toFixed(3),
+            metric: row.metric,
+            averagePerGame: row.mean.toFixed(3),
             standardDeviation:
                 row.populationStandardDeviation.toFixed(3)
         }))
