@@ -73,24 +73,62 @@ function Opportunity({ seconds, minimum, situation }) {
     );
 }
 
-export default function SpecialTeamsPanel({ player, powerPlay }) {
-    if (!player) {
+export default function SpecialTeamsPanel({ player, powerPlay, teamContext }) {
+    const ppPlayer = powerPlay?.player;
+    const shPlayer = teamContext?.player;
+
+    if (!player && !ppPlayer && !shPlayer) {
         return (
             <section className="rounded-xl border border-slate-700 bg-[#101d32] p-6">
                 <h2 className="text-[19px] font-semibold">
                     Special teams
                 </h2>
                 <p className="mt-3 text-sm text-slate-400">
-                    Detailed special-teams statistics are unavailable
-                    for this player’s latest recorded season.
+                    Special-teams statistics are unavailable for this
+                    player’s latest recorded season.
                 </p>
             </section>
         );
     }
 
+    const seasonRecord = ppPlayer ?? shPlayer ?? player;
     const season =
-        `${player.season.slice(0, 4)}–${player.season.slice(6, 8)}`;
+        `${seasonRecord.season.slice(0, 4)}–` +
+        seasonRecord.season.slice(6, 8);
 
+    const ppPoints = ppPlayer
+        ? ppPlayer.powerPlayPoints
+        : player?.powerPlayPoints;
+
+    const ppGames = ppPlayer
+        ? ppPlayer.gamesPlayed
+        : player?.gamesPlayed;
+
+    const ppMinutes = number(ppPlayer?.powerPlayMinutes);
+
+    const ppSeconds = ppPlayer
+        ? ppMinutes === null
+            ? null
+            : ppMinutes * 60
+        : player?.ppTimeOnIce;
+
+    const hasShData = Boolean(shPlayer || player);
+
+    const shMinutes = number(shPlayer?.shortHandedMinutes);
+
+    const shSeconds = shPlayer
+        ? shMinutes === null
+            ? null
+            : shMinutes * 60
+        : player?.shTimeOnIce;
+
+    const shGoals = shPlayer
+        ? shPlayer.teamOnIceShortHandedGoals
+        : player?.shortHandedGoalsFor;
+
+    const shGames = shPlayer
+        ? shPlayer.gamesPlayed
+        : player?.gamesPlayed;
     return (
         <section className="rounded-xl border border-slate-700 bg-[#101d32] p-6">
             <h2 className="text-[19px] font-semibold">
@@ -103,9 +141,11 @@ export default function SpecialTeamsPanel({ player, powerPlay }) {
 
             <section className="mt-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h3 className="text-[15px] font-semibold">Power play</h3>
+                    <h3 className="text-[15px] font-semibold">
+                        Power play
+                    </h3>
                     <Opportunity
-                        seconds={player.ppTimeOnIce}
+                        seconds={ppSeconds}
                         minimum={modelConfig.minimumPowerPlayMinutes}
                         situation="PP"
                     />
@@ -114,15 +154,15 @@ export default function SpecialTeamsPanel({ player, powerPlay }) {
                 <dl className="mt-5 grid gap-6 sm:grid-cols-3">
                     <Stat
                         label="Individual points /game"
-                        value={perGame(player.powerPlayPoints, player.gamesPlayed)}
+                        value={perGame(ppPoints, ppGames)}
                     />
                     <Stat
                         label="Individual PP points"
-                        value={player.powerPlayPoints}
+                        value={ppPoints}
                     />
                     <Stat
                         label="PP time /game"
-                        value={timePerGame(player.ppTimeOnIce, player.gamesPlayed)}
+                        value={timePerGame(ppSeconds, ppGames)}
                     />
                 </dl>
 
@@ -131,33 +171,48 @@ export default function SpecialTeamsPanel({ player, powerPlay }) {
 
             <section className="mt-8 border-t border-slate-700 pt-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                    <h3 className="text-[15px] font-semibold">Shorthanded</h3>
-                    <Opportunity
-                        seconds={player.shTimeOnIce}
-                        minimum={modelConfig.minimumShortHandedMinutes}
-                        situation="SH"
-                    />
+                    <h3 className="text-[15px] font-semibold">
+                        Shorthanded
+                    </h3>
+
+                    {hasShData && (
+                        <Opportunity
+                            seconds={shSeconds}
+                            minimum={modelConfig.minimumShortHandedMinutes}
+                            situation="SH"
+                        />
+                    )}
                 </div>
 
-                <dl className="mt-5 grid gap-6 sm:grid-cols-3">
-                    <Stat
-                        label="Team on-ice goals /game"
-                        value={perGame(player.shortHandedGoalsFor, player.gamesPlayed)}
-                    />
-                    <Stat
-                        label="Team on-ice goals"
-                        value={player.shortHandedGoalsFor}
-                    />
-                    <Stat
-                        label="SH time /game"
-                        value={timePerGame(player.shTimeOnIce, player.gamesPlayed)}
-                    />
-                </dl>
+                {hasShData ? (
+                    <>
+                        <dl className="mt-5 grid gap-6 sm:grid-cols-3">
+                            <Stat
+                                label="Team on-ice goals /game"
+                                value={perGame(shGoals, shGames)}
+                            />
+                            <Stat
+                                label="Team on-ice goals"
+                                value={shGoals}
+                            />
+                            <Stat
+                                label="SH time /game"
+                                value={timePerGame(shSeconds, shGames)}
+                            />
+                        </dl>
 
-                <p className="mt-5 text-xs leading-relaxed text-slate-400">
-                    Shorthanded scoring is bonus context. It does not
-                    currently add to the offensive rating.
-                </p>
+                        <p className="mt-5 text-xs leading-relaxed text-slate-400">
+                            Shorthanded scoring is bonus context. It does not
+                            currently add to the offensive rating. Recorded
+                            production remains visible below the sample minimum.
+                        </p>
+                    </>
+                ) : (
+                    <p className="mt-4 text-sm leading-relaxed text-slate-400">
+                        Shorthanded statistics are unavailable for this
+                        player’s latest recorded season.
+                    </p>
+                )}
             </section>
 
             <p className="mt-6 text-xs leading-relaxed text-slate-400">

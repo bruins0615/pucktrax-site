@@ -136,3 +136,20 @@ Eligible comparisons use standardized values, with bars clipped at
 
 Team PP comparisons are descriptive context only. They do not change
 the offensive index, PP coefficient, or historical rating.
+
+## League-wide special-teams display coverage
+
+The Special teams tab uses league-wide PP reference data and SH fields
+from the league-wide team-context reference, matched by player and season.
+The detailed player collection remains a fallback when reference data
+is unavailable.
+
+SH fields include total minutes, time per game, team on-ice goals,
+and team on-ice goals per game. Per-game values use all recorded games.
+
+SH sample eligibility requires 75 SH minutes independently of five-on-five
+eligibility. Recorded production remains visible below that cutoff.
+Missing values remain unavailable rather than becoming zero.
+
+SH scoring remains bonus context only. No SH baseline or offensive-rating
+contribution is calculated. Eleven offline model/reference tests pass.

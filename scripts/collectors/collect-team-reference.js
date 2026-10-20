@@ -70,6 +70,44 @@ function buildTeamReference(shooting, goals, iceTime, season) {
         const minutes5v5 = seconds5v5 / 60;
         const eligible = minutes5v5 >= MODEL_CONFIG.minimumMinutes5v5;
 
+        const shSeconds = timeStats.shTimeOnIce;
+        const shGoals = goalStats.shortHandedGoalsFor;
+
+        if (!Number.isFinite(shSeconds) || shSeconds < 0) {
+            throw new Error(
+                `Invalid SH ice time: ${shots.playerId}, ${season}`
+            );
+        }
+
+        const shMinutes = shSeconds / 60;
+        const shEligible =
+            shMinutes >= MODEL_CONFIG.minimumShortHandedMinutes;
+
+        if (shGoals == null && shEligible) {
+            throw new Error(
+                `Missing team SH goals for eligible player: ${shots.playerId}, ${season}`
+            );
+        }
+
+        if (
+            shGoals != null &&
+            (!Number.isInteger(shGoals) || shGoals < 0)
+        ) {
+            throw new Error(
+                `Invalid team SH goals: ${shots.playerId}, ${season}`
+            );
+        }
+
+        if (shSeconds === 0 && shGoals > 0) {
+            throw new Error(
+                `Team SH goals recorded without SH time: ${shots.playerId}, ${season}`
+            );
+        }
+
+        const shDisplaySeconds = Math.round(
+            shSeconds / shots.gamesPlayed
+        );
+
         const rates = [
             [shots.usatFor, seconds5v5],
             [goalStats.evenStrengthGoalsFor, secondsEV]
@@ -106,7 +144,24 @@ function buildTeamReference(shooting, goals, iceTime, season) {
             teamOnIceGoalsForEvenStrength:
                 goalStats.evenStrengthGoalsFor,
             [TEAM_METRICS[0]]: rates[0],
-            [TEAM_METRICS[1]]: rates[1]
+            [TEAM_METRICS[1]]: rates[1],
+            shortHandedMinutes: shMinutes,
+            shortHandedSecondsPerGame:
+                shSeconds / shots.gamesPlayed,
+            shortHandedTimePerGame:
+                `${Math.floor(shDisplaySeconds / 60)}:` +
+                String(shDisplaySeconds % 60).padStart(2, "0"),
+            teamOnIceShortHandedGoals: shGoals,
+            teamOnIceShortHandedGoalsPerGame:
+                shGoals == null ? null : shGoals / shots.gamesPlayed,
+            shortHandedSampleStatus:
+                shSeconds === 0
+                    ? "No SH opportunity"
+                    : shEligible
+                        ? "Eligible"
+                        : "Limited SH opportunity",
+            shortHandedDataStatus:
+                shGoals == null ? "Team SH goals unavailable" : "Complete"
         };
     });
 }
@@ -175,6 +230,14 @@ async function main() {
             seasons: SEASONS,
             gameTypeId: 2,
             minimumMinutes5v5: MODEL_CONFIG.minimumMinutes5v5,
+            minimumShortHandedMinutes:
+                MODEL_CONFIG.minimumShortHandedMinutes,
+            shortHandedPolicy:
+                "Team SH goals divided by all recorded games played. " +
+                "SH sample labels use the SH minute cutoff independently " +
+                "of five-on-five eligibility. Recorded SH production is " +
+                "retained below the cutoff. No SH baseline or rating " +
+                "contribution is calculated.",
             reports: ["summaryshooting", "goalsForAgainst", "timeonice"],
             sources,
             metrics: TEAM_METRICS,

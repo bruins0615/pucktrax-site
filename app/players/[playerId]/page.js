@@ -308,7 +308,11 @@ export default async function PlayerPage({ params }) {
                                 {
                                     key: "special-teams",
                                     label: "Special teams",
-                                    content: <SpecialTeamsPanel player={coreStats} powerPlay={powerPlay} />
+                                    content: <SpecialTeamsPanel
+                                        player={coreStats}
+                                        powerPlay={powerPlay}
+                                        teamContext={teamContext}
+                                    />
                                 },
                                 {
                                     key: "team-context",

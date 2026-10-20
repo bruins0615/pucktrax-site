@@ -17,6 +17,10 @@ const {
     buildPowerPlayReference
 } = require("../scripts/collectors/collect-powerplay-reference");
 
+const {
+    buildTeamReference
+} = require("../scripts/collectors/collect-team-reference");
+
 test("missing numbers are rejected, but zero is valid", () => {
     assert.equal(requireNumber("0", "test value"), 0);
 
@@ -374,4 +378,78 @@ test("team PP reference validates goals and matching reports", () => {
         () => build(1, 4500, { playerId: 2 }),
         /Report coverage differs/
     );
+});
+
+test("SH samples preserve production and use their own 75-minute cutoff", () => {
+    const player = {
+        playerId: 1,
+        seasonId: 20252026,
+        skaterFullName: "Example Player",
+        positionCode: "C",
+        gamesPlayed: 10
+    };
+
+    function build(seconds, goals, fiveOnFiveSeconds = 1000) {
+        return buildTeamReference(
+            [{
+                ...player,
+                timeOnIcePerGame5v5: fiveOnFiveSeconds,
+                usatFor: 50
+            }],
+            [{
+                ...player,
+                evenStrengthGoalsFor: 3,
+                shortHandedGoalsFor: goals
+            }],
+            [{
+                ...player,
+                evTimeOnIce: 10000,
+                shTimeOnIce: seconds
+            }],
+            20252026
+        )[0];
+    }
+
+    for (const [seconds, status] of [
+        [4499, "Limited SH opportunity"],
+        [4500, "Eligible"],
+        [4501, "Eligible"]
+    ]) {
+        const result = build(seconds, 2);
+
+        assert.equal(result.shortHandedSampleStatus, status);
+        assert.equal(result.teamOnIceShortHandedGoals, 2);
+        assert.equal(result.teamOnIceShortHandedGoalsPerGame, 0.2);
+        assert.equal(result.shortHandedTimePerGame, "7:30");
+    }
+
+    // SH eligibility is independent of five-on-five eligibility.
+    const limitedFiveOnFive = build(4500, 2, 300);
+    assert.equal(limitedFiveOnFive.sampleStatus, "Limited sample");
+    assert.equal(limitedFiveOnFive.shortHandedSampleStatus, "Eligible");
+
+    assert.equal(build(0, 0).shortHandedSampleStatus, "No SH opportunity");
+    assert.equal(build(0, 0).teamOnIceShortHandedGoalsPerGame, 0);
+
+    const missing = build(4499, null);
+    assert.equal(missing.teamOnIceShortHandedGoalsPerGame, null);
+    assert.equal(missing.shortHandedDataStatus, "Team SH goals unavailable");
+
+    assert.throws(
+        () => build(4500, null),
+        /Missing team SH goals for eligible player/
+    );
+
+    for (const goals of [-1, 1.5, "2", NaN, Infinity]) {
+        assert.throws(() => build(4500, goals), /Invalid team SH goals/);
+    }
+
+    assert.throws(
+        () => build(0, 1),
+        /Team SH goals recorded without SH time/
+    );
+
+    for (const seconds of [null, -1, NaN, Infinity]) {
+        assert.throws(() => build(seconds, 0), /Invalid SH ice time/);
+    }
 });
