@@ -6,6 +6,7 @@
 - [Collector guide](collector-guide.md): comparison-player and Bruins entry points, shared collection, output destinations, and current roster limitations.
 - [Script maintenance](script-maintenance.md): script lifecycle, what to rerun, completed migrations, and maintenance priorities.
 - [Offensive checklist](offense-checklist.md): completed implementation, deferred improvements, and readiness to begin the next category.
+- [Defensive Model v1](PuckTrax-defensive-model-v1.md): provisional suppression formula, action bonuses, eligibility, limitations, and implementation checklist.
 
 ## Historical reference
 

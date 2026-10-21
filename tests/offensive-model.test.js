@@ -395,19 +395,27 @@ test("SH samples preserve production and use their own 75-minute cutoff", () => 
             [{
                 ...player,
                 timeOnIcePerGame5v5: fiveOnFiveSeconds,
-                usatFor: 50
+                usatFor: 50,
+                usatAgainst: 60
             }],
             [{
                 ...player,
                 evenStrengthGoalsFor: 3,
+                evenStrengthGoalsAgainst: 4,
                 shortHandedGoalsFor: goals
             }],
             [{
                 ...player,
+                timeOnIce: 20000,
                 evTimeOnIce: 10000,
                 shTimeOnIce: seconds
             }],
-            20252026
+            20252026,
+            [{
+                ...player,
+                blockedShots: 10,
+                takeaways: 5
+            }]
         )[0];
     }
 
@@ -491,4 +499,111 @@ test("core statistics preserve zeros and validate scoring totals", () => {
             /Invalid core statistics/
         );
     }
+});
+
+test("defensive rates use matching five-on-five and EV ice time", () => {
+    const player = {
+        playerId: 1,
+        seasonId: 20252026,
+        skaterFullName: "Example Player",
+        positionCode: "D",
+        gamesPlayed: 10
+    };
+
+    function build(
+        unblockedAgainst,
+        goalsAgainst,
+        blocks = 20,
+        takeaways = 8
+    ) {
+        return buildTeamReference(
+            [{
+                ...player,
+                timeOnIcePerGame5v5: 1200,
+                usatFor: 80,
+                usatAgainst: unblockedAgainst
+            }],
+            [{
+                ...player,
+                evenStrengthGoalsFor: 12,
+                evenStrengthGoalsAgainst: goalsAgainst,
+                shortHandedGoalsFor: 0
+            }],
+            [{
+                ...player,
+                timeOnIce: 24000,
+                evTimeOnIce: 18000,
+                shTimeOnIce: 0
+            }],
+            20252026,
+            [{
+                ...player,
+                blockedShots: blocks,
+                takeaways
+            }]
+        )[0];
+    }
+
+    const result = build(100, 10);
+
+    assert.equal(result.allSituationsMinutes, 400);
+    assert.equal(result.individualBlockedShotsAllSituations, 20);
+    assert.equal(result.individualTakeawaysAllSituations, 8);
+    assert.equal(result.individualBlockedShotsPer60AllSituations, 3);
+    assert.equal(result.individualTakeawaysPer60AllSituations, 1.2);
+
+    const noActions = build(100, 10, 0, 0);
+    assert.equal(noActions.individualBlockedShotsPer60AllSituations, 0);
+    assert.equal(noActions.individualTakeawaysPer60AllSituations, 0);
+
+    assert.throws(
+        () => build(100, 10, null, 8),
+        /Missing eligible-player data/
+    );
+
+    assert.throws(
+        () => build(100, 10, -1, 8),
+        /Invalid event count/
+    );
+
+    assert.throws(
+        () => build(100, 10, 20, "8"),
+        /Invalid event count/
+    );
+
+    assert.equal(result.estimatedMinutes5v5, 200);
+    assert.equal(result.evenStrengthMinutes, 300);
+
+    assert.equal(
+        result.teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5,
+        30
+    );
+
+    assert.equal(
+        result.teamOnIceGoalsAgainstPer60EvenStrength,
+        2
+    );
+
+    const zero = build(0, 0);
+
+    assert.equal(
+        zero.teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5,
+        0
+    );
+    assert.equal(zero.teamOnIceGoalsAgainstPer60EvenStrength, 0);
+
+    assert.throws(
+        () => build(null, 10),
+        /Missing eligible-player data/
+    );
+
+    assert.throws(
+        () => build(100, null),
+        /Missing eligible-player data/
+    );
+
+    assert.throws(
+        () => build(-1, 10),
+        /Invalid event count/
+    );
 });

@@ -15,15 +15,20 @@ const SEASONS = MODEL_CONFIG.historicalSeasons;
 
 const TEAM_METRICS = [
     "teamEstimatedOnIceUnblockedAttemptsPer60_5v5",
-    "teamOnIceGoalsForPer60EvenStrength"
+    "teamOnIceGoalsForPer60EvenStrength",
+    "teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5",
+    "teamOnIceGoalsAgainstPer60EvenStrength",
+    "individualBlockedShotsPer60AllSituations",
+    "individualTakeawaysPer60AllSituations"
 ];
 
-function buildTeamReference(shooting, goals, iceTime, season) {
+function buildTeamReference(shooting, goals, iceTime, season, realtime) {
     const shootingById = indexReport(shooting, season);
     const goalsById = indexReport(goals, season);
     const iceTimeById = indexReport(iceTime, season);
+    const realtimeById = indexReport(realtime, season);
 
-    const sameCoverage = [goalsById, iceTimeById].every(
+    const sameCoverage = [goalsById, iceTimeById, realtimeById].every(
         (report) =>
             report.size === shootingById.size &&
             [...shootingById.keys()].every((id) => report.has(id))
@@ -36,6 +41,7 @@ function buildTeamReference(shooting, goals, iceTime, season) {
     return [...shootingById.values()].map((shots) => {
         const goalStats = goalsById.get(shots.playerId);
         const timeStats = iceTimeById.get(shots.playerId);
+        const actions = realtimeById.get(shots.playerId);
 
         if (
             !["C", "L", "R", "D"].includes(shots.positionCode) ||
@@ -45,6 +51,8 @@ function buildTeamReference(shooting, goals, iceTime, season) {
             timeStats.gamesPlayed !== shots.gamesPlayed ||
             goalStats.positionCode !== shots.positionCode ||
             timeStats.positionCode !== shots.positionCode
+            || actions.gamesPlayed !== shots.gamesPlayed
+            || actions.positionCode !== shots.positionCode
         ) {
             throw new Error(
                 `Position or games mismatch: ${shots.playerId}, ${season}`
@@ -55,12 +63,15 @@ function buildTeamReference(shooting, goals, iceTime, season) {
             shots.timeOnIcePerGame5v5 * shots.gamesPlayed;
 
         const secondsEV = timeStats.evTimeOnIce;
+        const secondsAll = timeStats.timeOnIce;
 
         if (
             !Number.isFinite(shots.timeOnIcePerGame5v5) ||
             shots.timeOnIcePerGame5v5 < 0 ||
             !Number.isFinite(secondsEV) ||
             secondsEV < 0
+            || !Number.isFinite(secondsAll)
+            || secondsAll < 0
         ) {
             throw new Error(
                 `Invalid ice time: ${shots.playerId}, ${season}`
@@ -110,8 +121,13 @@ function buildTeamReference(shooting, goals, iceTime, season) {
 
         const rates = [
             [shots.usatFor, seconds5v5],
-            [goalStats.evenStrengthGoalsFor, secondsEV]
+            [goalStats.evenStrengthGoalsFor, secondsEV],
+            [shots.usatAgainst, seconds5v5],
+            [goalStats.evenStrengthGoalsAgainst, secondsEV],
+            [actions.blockedShots, secondsAll],
+            [actions.takeaways, secondsAll]
         ].map(([count, seconds]) => {
+
             if (count == null || seconds === 0) {
                 if (eligible) {
                     throw new Error(
@@ -145,6 +161,17 @@ function buildTeamReference(shooting, goals, iceTime, season) {
                 goalStats.evenStrengthGoalsFor,
             [TEAM_METRICS[0]]: rates[0],
             [TEAM_METRICS[1]]: rates[1],
+            teamOnIceUnblockedAttemptsAgainst5v5:
+                shots.usatAgainst,
+            teamOnIceGoalsAgainstEvenStrength:
+                goalStats.evenStrengthGoalsAgainst,
+            [TEAM_METRICS[2]]: rates[2],
+            [TEAM_METRICS[3]]: rates[3],
+            allSituationsMinutes: secondsAll / 60,
+            individualBlockedShotsAllSituations: actions.blockedShots,
+            individualTakeawaysAllSituations: actions.takeaways,
+            [TEAM_METRICS[4]]: rates[4],
+            [TEAM_METRICS[5]]: rates[5],
             shortHandedMinutes: shMinutes,
             shortHandedSecondsPerGame:
                 shSeconds / shots.gamesPlayed,
@@ -174,12 +201,14 @@ async function main() {
         const shooting = await fetchReport("summaryshooting", season);
         const goals = await fetchReport("goalsForAgainst", season);
         const iceTime = await fetchReport("timeonice", season);
+        const realtime = await fetchReport("realtime", season);
 
         const reference = buildTeamReference(
             shooting,
             goals,
             iceTime,
-            season
+            season,
+            realtime
         );
 
         rows.push(...reference);
@@ -188,7 +217,8 @@ async function main() {
             season,
             shootingRows: shooting.length,
             goalsRows: goals.length,
-            iceTimeRows: iceTime.length
+            iceTimeRows: iceTime.length,
+            realtimeRows: realtime.length
         });
 
         const eligibleCount = reference.filter(
@@ -196,7 +226,8 @@ async function main() {
         ).length;
 
         console.log(
-            `${season}: ${reference.length} matched; ${eligibleCount} eligible.`
+            `${season}: ${reference.length} matched; ` +
+            `${eligibleCount} eligible.`
         );
     }
 
@@ -238,15 +269,34 @@ async function main() {
                 "of five-on-five eligibility. Recorded SH production is " +
                 "retained below the cutoff. No SH baseline or rating " +
                 "contribution is calculated.",
-            reports: ["summaryshooting", "goalsForAgainst", "timeonice"],
+            reports: [
+                "summaryshooting",
+                "goalsForAgainst",
+                "timeonice",
+                "realtime"
+            ],
             sources,
             metrics: TEAM_METRICS,
+            defensiveContextPolicy:
+                "Lower against rates indicate fewer opposing events. " +
+                "Unblocked attempts against use reconstructed five-on-five time; " +
+                "goals against use even-strength time. Baselines currently reuse " +
+                "the existing five-on-five eligibility group for exploration. " +
+                "No defensive weights or player scores are assigned.",
+            individualActionPolicy:
+                "Blocks and takeaways use all-situations event counts " +
+                "divided by total ice time from the timeonice report. " +
+                "Rates are expressed per 60 minutes. Their positional " +
+                "baselines reuse the existing five-on-five eligibility " +
+                "group for exploration. No action weights are assigned.",
             standardDeviation: "Population",
             weighting: "Each eligible skater equally weighted",
             note:
-                "Team on-ice context only. Unadjusted for teammates, opponents " +
-                "and deployment. Five-on-five time reconstructed from the " +
-                "summaryshooting per-game average."
+                "Includes team on-ice context and individual defensive actions. " +
+                "On-ice results are unadjusted for teammates, opponents and " +
+                "deployment. Five-on-five time is reconstructed from the " +
+                "summaryshooting per-game average. Individual actions use " +
+                "all-situations ice time."
         }, null, 2) + "\n"
     );
 

@@ -1,0 +1,46 @@
+{
+  "modelVersion": "defense-v1-provisional",
+  "generatedAt": "2026-10-21T19:21:42.065Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "minimumMinutes5v5": 150,
+  "suppressionWeights": {
+    "teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5": 0.7,
+    "teamOnIceGoalsAgainstPer60EvenStrength": 0.3
+  },
+  "bonusCoefficients": {
+    "individualBlockedShotsPer60AllSituations": 0.05,
+    "individualTakeawaysPer60AllSituations": 0.025
+  },
+  "comparisonGroup": "Same season and NHL position; existing five-on-five eligibility group.",
+  "suppressionDirection": "(Positional mean minus player rate) divided by population standard deviation.",
+  "situations": {
+    "unblockedAttemptsAgainst": "Five-on-five",
+    "goalsAgainst": "Even strength",
+    "blocksAndTakeaways": "All situations"
+  },
+  "bonusPolicy": "Proportional positive credit. No positional-average subtraction.",
+  "missingDataPolicy": "Below-cutoff seasons remain unscored. Invalid eligible inputs fail the run.",
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/team-context-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "10f183816f30405b5ba0c4d5fd920cd2329a54aa1b21c6f364e1a3d8454ebe1e",
+      "bytes": 791913
+    },
+    {
+      "path": "data/league-reference/team-context-baselines.csv",
+      "algorithm": "sha256",
+      "hash": "9a9e4f770f20a2278f1388578ed5ba6a1d292e81f42df8e00dbb3e6d3005dd90",
+      "bytes": 7568
+    }
+  ],
+  "outputCounts": {
+    "seasonRecords": 2784,
+    "eligibleSeasonIndices": 2225
+  },
+  "note": "Provisional descriptive defensive indices only. No historical aggregation, percentile grades, or overall player score. On-ice results are unadjusted for teammates, goaltending, opponents and deployment."
+}

@@ -24,5 +24,17 @@ module.exports = Object.freeze({
         individualShotsForPer60: 0.10
     }),
 
-    powerPlayCoefficient: 1
+    powerPlayCoefficient: 1,
+
+    defensiveModelVersion: "defense-v1-provisional",
+
+    defensiveSuppressionWeights: Object.freeze({
+        teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5: 0.70,
+        teamOnIceGoalsAgainstPer60EvenStrength: 0.30
+    }),
+
+    defensiveBonusCoefficients: Object.freeze({
+        individualBlockedShotsPer60AllSituations: 0.05,
+        individualTakeawaysPer60AllSituations: 0.025
+    })
 });
