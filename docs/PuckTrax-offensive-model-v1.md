@@ -65,7 +65,7 @@ Repository reference directory: `/Users/andrewvayo/dev/pucktrax-site/data/league
 
 Read-only calculations successfully produced trial combined indices for 2,225 eligible player-seasons across the three completed seasons. Reviewed named examples, changing roles/results, and short qualifying samples. This verifies calculation behavior, not predictive accuracy or final model validity.
 
-A reusable scoring script and saved offensive ratings now exist; see the implementation section below. No overall player grade or published player-profile website implementation exists.
+The scoring script, saved offensive ratings, and website player profiles are implemented. The website reads saved data and presents offense separately from overall player value. No overall player grade is assigned.
 
 ## Percentile ratings — agreed implementation
 
@@ -90,7 +90,7 @@ The user built `scripts/models/calculate-offensive-ratings.js` with guided edits
 
 - `data/offensive-ratings/season-offensive-ratings.csv`: all 2,784 player-season rows, including 2,225 scored records and 559 unscored rows.
 - `data/offensive-ratings/historical-offensive-ratings.csv`: 1,196 players, including 957 rated and 239 without eligible history.
-- `data/offensive-ratings/model-metadata.json`: weights, coefficient, seasons, thresholds, grouping, percentile method, and output counts.
+- `data/offensive-ratings/model-metadata.json`: model settings, output counts, and SHA-256 fingerprints and byte sizes of the exact scoring input files read during calculation.
 
 Counts describe the current reference snapshot, not permanent expected totals. Season outputs retain each metric's z-score and weighted contribution, five-on-five score, PP addition, and combined index. Historical outputs retain averaged five-on-five and PP components. Saved numeric indices and percentiles are not rounded for display; ratings are rounded to one decimal.
 
@@ -98,90 +98,33 @@ Syntax, isolated end-to-end output writing, component sums, eligible-only season
 
 ## Player-profile presentation
 
-Use the Night rink theme and Scout notebook layout. The large grade area is labeled Offense, not overall player value. Keep jersey number in the identity line. Player-style descriptors remain unassigned until separately defined.
+Use the Night rink theme and Scout notebook layout. The large grade area is labeled Offense, not overall player value. Show a jersey number only when verified data is available. Player-style descriptors remain unassigned until separately defined.
 
-The current demo shows 2025–26 statistics and its matching season Offense rating. A separately labeled historical summary can show 2023–24 through 2025–26 ratings with the eligible-season count. Do not show a historical grade as though it describes a single selected season.
+The main Offense grade describes the historical window, currently
+2023–24 through 2025–26. Show its eligible-season count and expandable
+comparison explanation. The sidebar separately labels the latest
+recorded season's core statistics. Individual season ratings appear
+in the expandable historical record. Do not present the historical
+grade as a single-season rating.
 
 Display games played, totals, plus/minus, and usage as context. Show actual per-60 rates prominently, positional averages secondarily, and plain-language comparison labels. Standardized detail is expandable. Team context stays unweighted and clearly distinguishes 5v5 from EV coverage. Current Trend and projected output remain unimplemented.
 
-## Remaining work
+## Implementation status and remaining work
 
-- Define the optional short-qualifying-sample label consistently, or rely on numeric exposure alone.
-- Continue validation across players, sample sizes, and seasons before finalizing model version or presenting ratings as established measures of value.
-- Add source fingerprints or an explicit reference snapshot ID for stronger reproducibility in a future iteration.
-- Develop defensive and other categories before an overall player grade or two-way style descriptor.
-- Implement the actual website profile with guided user edits; the conversation mockup is not project website code.
+See [Offensive category checklist](offense-checklist.md) for completed implementation and deferred improvements. The model remains provisional. Continue reviewing results across roles, positions, seasons, and sample sizes. Formula implementation and automated checks do not independently validate the chosen weights. Current Trend, projections, overall player grades, and player-style descriptors remain separate future work. Numeric exposure is displayed; an optional short-qualifying-sample label has no agreed boundary.
 
 ## Player profile and team power-play context
 
-The website player profile reads saved CSV data. Its historical grade
-uses the three-season model; individual season statistics are labeled
-separately. Season history remains available in the sidebar.
-
-Analysis tabs show five-on-five, special teams, and team context.
-
-Team on-ice PP goals/game equals goals scored by the player's team
-while that player was on the power play, divided by all games played.
-
-The positional baseline uses players from the same season and NHL
-position with at least 75 PP minutes. Each eligible player receives
-equal weight; standard deviation uses the population formula.
-
-Below 75 PP minutes, recorded production and the positional average
-remain visible, but the comparison bar and performance label are hidden.
-The display states that the comparison is not rated.
-
-Eligible comparisons use standardized values, with bars clipped at
-±3 standard deviations. These bars are not percentiles.
-
-Team PP comparisons are descriptive context only. They do not change
-the offensive index, PP coefficient, or historical rating.
+The website player profile reads saved CSV data. Its historical grade uses the three-season model; individual season statistics are labeled separately. Season history remains available in the sidebar. Analysis tabs show five-on-five, special teams, and team context. Team on-ice PP goals/game equals goals scored by the player's team while that player was on the power play, divided by all games played. The positional baseline uses players from the same season and NHL position with at least 75 PP minutes. Each eligible player receives equal weight; standard deviation uses the population formula. Below 75 PP minutes, recorded production and the positional average remain visible, but the comparison bar and performance label are hidden. The display states that the comparison is not rated. Eligible comparisons use standardized values, with bars clipped at ±3 standard deviations. These bars are not percentiles. Team PP comparisons are descriptive context only. They do not change the offensive index, PP coefficient, or historical rating.
 
 ## League-wide special-teams display coverage
 
-The Special teams tab uses league-wide PP reference data and SH fields
-from the league-wide team-context reference, matched by player and season.
-The detailed player collection remains a fallback when reference data
-is unavailable.
-
-SH fields include total minutes, time per game, team on-ice goals,
-and team on-ice goals per game. Per-game values use all recorded games.
-
-SH sample eligibility requires 75 SH minutes independently of five-on-five
-eligibility. Recorded production remains visible below that cutoff.
-Missing values remain unavailable rather than becoming zero.
-
-SH scoring remains bonus context only. No SH baseline or offensive-rating
-contribution is calculated. Eleven offline model/reference tests pass.
+The Special teams tab uses league-wide PP reference data and SH fields from the league-wide team-context reference, matched by player and season. The detailed player collection remains a fallback when reference data is unavailable. SH fields include total minutes, time per game, team on-ice goals, and team on-ice goals per game. Per-game values use all recorded games. SH sample eligibility requires 75 SH minutes independently of five-on-five eligibility. Recorded production remains visible below that cutoff. Missing values remain unavailable rather than becoming zero. SH scoring remains bonus context only. No SH baseline or offensive-rating contribution is calculated. Automated model/reference checks cover scoring, eligibility, missingness, and special-teams validation.
 
 ## League-wide core statistics
 
-The power-play reference collector also saves `core-skaters.csv` from
-its existing NHL summary response, without additional API requests.
-
-This file contains all-situation regular-season games, goals, assists,
-points, plus/minus, and season team abbreviations.
-
-The player page matches records by player ID and season, preserving
-additional detailed fields where available while using league-wide
-core values for the sidebar. Team abbreviations describe historical
-season affiliations, not verified current roster membership.
-
-This expands display coverage without changing offensive scoring.
-Twelve offline model/reference tests pass.
+The power-play reference collector also saves `core-skaters.csv` from its existing NHL summary response, without additional API requests. This file contains all-situation regular-season games, goals, assists, points, plus/minus, and season team abbreviations. The player page matches records by player ID and season, preserving additional detailed fields where available while using league-wide core values for the sidebar. Team abbreviations describe historical season affiliations, not verified current roster membership. This expands display coverage without changing offensive scoring. Twelve offline model/reference tests pass.
 
 ## Directory filters and historical teams
 
-The player directory supports name search, position, displayed offensive
-rating ranges, eligible-season counts, and name/rating sorting.
-Unrated players remain distinct from a 0.0 rating and sort last when
-sorting by rating.
-
-Team filters use season-specific affiliations from `core-skaters.csv`.
-Players recorded with multiple teams match each team in that season
-without duplicate directory entries.
-
-Season selection controls team affiliations only. Ratings remain
-historical, and player cards show combined full-season performance.
-These filters do not represent verified current rosters or team-specific
-performance splits.
+The player directory supports name search, position, displayed offensive rating ranges, eligible-season counts, and name/rating sorting. Unrated players remain distinct from a 0.0 rating and sort last when sorting by rating. Team filters use season-specific affiliations from `core-skaters.csv`. Players recorded with multiple teams match each team in that season without duplicate directory entries. Season selection controls team affiliations only. Ratings remain historical, and player cards show combined full-season performance. These filters do not represent verified current rosters or team-specific performance splits.
