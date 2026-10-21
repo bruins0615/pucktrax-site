@@ -1,5 +1,5 @@
 {
-  "collectedAt": "2026-10-21T21:32:14.529Z",
+  "collectedAt": "2026-10-21T22:31:59.011Z",
   "seasons": [
     20232024,
     20242025,
@@ -8,7 +8,7 @@
   "gameTypeId": 2,
   "minimumMinutes5v5": 300,
   "minimumShortHandedMinutes": 75,
-  "shortHandedPolicy": "Team SH goals divided by all recorded games played. SH sample labels use the SH minute cutoff independently of five-on-five eligibility. Recorded SH production is retained below the cutoff. No SH baseline or rating contribution is calculated.",
+  "shortHandedPolicy": "Team SH goals and opponent PP goals against are divided by all recorded games played. SH eligibility uses the 75-minute cutoff independently of five-on-five eligibility. PK goals-against/game baselines use equally weighted SH-eligible skaters within season and NHL position. Recorded stats remain visible below the cutoff. PK is display context only; no separate rating contribution.",
   "reports": [
     "summaryshooting",
     "goalsForAgainst",
@@ -45,6 +45,9 @@
     "teamOnIceGoalsAgainstPer60EvenStrength",
     "individualBlockedShotsPer60AllSituations",
     "individualTakeawaysPer60AllSituations"
+  ],
+  "penaltyKillMetrics": [
+    "teamOnIcePowerPlayGoalsAgainstPerGame"
   ],
   "defensiveContextPolicy": "Lower against rates indicate fewer opposing events. Unblocked attempts against use reconstructed five-on-five time; goals against use even-strength time. Baselines currently reuse the existing five-on-five eligibility group for exploration. No defensive weights or player scores are assigned.",
   "individualActionPolicy": "Blocks and takeaways use all-situations event counts divided by total ice time from the timeonice report. Rates are expressed per 60 minutes. Their positional baselines reuse the existing five-on-five eligibility group for exploration. No action weights are assigned.",

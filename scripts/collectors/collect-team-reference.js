@@ -83,6 +83,7 @@ function buildTeamReference(shooting, goals, iceTime, season, realtime) {
 
         const shSeconds = timeStats.shTimeOnIce;
         const shGoals = goalStats.shortHandedGoalsFor;
+        const pkGoalsAgainst = goalStats.powerPlayGoalsAgainst;
 
         if (!Number.isFinite(shSeconds) || shSeconds < 0) {
             throw new Error(
@@ -112,6 +113,27 @@ function buildTeamReference(shooting, goals, iceTime, season, realtime) {
         if (shSeconds === 0 && shGoals > 0) {
             throw new Error(
                 `Team SH goals recorded without SH time: ${shots.playerId}, ${season}`
+            );
+        }
+
+        if (pkGoalsAgainst == null && shEligible) {
+            throw new Error(
+                `Missing PK goals against for eligible player: ${shots.playerId}, ${season}`
+            );
+        }
+
+        if (
+            pkGoalsAgainst != null &&
+            (!Number.isInteger(pkGoalsAgainst) || pkGoalsAgainst < 0)
+        ) {
+            throw new Error(
+                `Invalid PK goals against: ${shots.playerId}, ${season}`
+            );
+        }
+
+        if (shSeconds === 0 && pkGoalsAgainst > 0) {
+            throw new Error(
+                `PK goals against recorded without SH time: ${shots.playerId}, ${season}`
             );
         }
 
@@ -172,6 +194,11 @@ function buildTeamReference(shooting, goals, iceTime, season, realtime) {
             individualTakeawaysAllSituations: actions.takeaways,
             [TEAM_METRICS[4]]: rates[4],
             [TEAM_METRICS[5]]: rates[5],
+            teamOnIcePowerPlayGoalsAgainst: pkGoalsAgainst,
+            teamOnIcePowerPlayGoalsAgainstPerGame:
+                pkGoalsAgainst == null
+                    ? null
+                    : pkGoalsAgainst / shots.gamesPlayed,
             shortHandedMinutes: shMinutes,
             shortHandedSecondsPerGame:
                 shSeconds / shots.gamesPlayed,
@@ -191,6 +218,19 @@ function buildTeamReference(shooting, goals, iceTime, season, realtime) {
                 shGoals == null ? "Team SH goals unavailable" : "Complete"
         };
     });
+}
+
+function buildPenaltyKillBaselines(rows) {
+    const eligibleRows = rows
+        .filter((row) => row.shortHandedSampleStatus === "Eligible")
+        .map((row) => ({
+            ...row,
+            sampleStatus: "Eligible"
+        }));
+
+    return calculateBaselines(eligibleRows, [
+        "teamOnIcePowerPlayGoalsAgainstPerGame"
+    ]);
 }
 
 async function main() {
@@ -238,7 +278,10 @@ async function main() {
             a.playerId - b.playerId
     );
 
-    const baselines = calculateBaselines(rows, TEAM_METRICS);
+    const baselines = [
+        ...calculateBaselines(rows, TEAM_METRICS),
+        ...buildPenaltyKillBaselines(rows)
+    ];
 
     const directory = path.resolve("data/league-reference");
 
@@ -264,11 +307,13 @@ async function main() {
             minimumShortHandedMinutes:
                 MODEL_CONFIG.minimumShortHandedMinutes,
             shortHandedPolicy:
-                "Team SH goals divided by all recorded games played. " +
-                "SH sample labels use the SH minute cutoff independently " +
-                "of five-on-five eligibility. Recorded SH production is " +
-                "retained below the cutoff. No SH baseline or rating " +
-                "contribution is calculated.",
+                "Team SH goals and opponent PP goals against are divided " +
+                "by all recorded games played. SH eligibility uses the " +
+                "75-minute cutoff independently of five-on-five eligibility. " +
+                "PK goals-against/game baselines use equally weighted " +
+                "SH-eligible skaters within season and NHL position. " +
+                "Recorded stats remain visible below the cutoff. " +
+                "PK is display context only; no separate rating contribution.",
             reports: [
                 "summaryshooting",
                 "goalsForAgainst",
@@ -277,6 +322,9 @@ async function main() {
             ],
             sources,
             metrics: TEAM_METRICS,
+            penaltyKillMetrics: [
+                "teamOnIcePowerPlayGoalsAgainstPerGame"
+            ],
             defensiveContextPolicy:
                 "Lower against rates indicate fewer opposing events. " +
                 "Unblocked attempts against use reconstructed five-on-five time; " +
@@ -324,5 +372,6 @@ if (require.main === module) {
 
 module.exports = {
     buildTeamReference,
+    buildPenaltyKillBaselines,
     TEAM_METRICS
 };

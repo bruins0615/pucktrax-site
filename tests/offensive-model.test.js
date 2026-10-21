@@ -19,7 +19,8 @@ const {
 } = require("../scripts/collectors/collect-powerplay-reference");
 
 const {
-    buildTeamReference
+    buildTeamReference,
+    buildPenaltyKillBaselines
 } = require("../scripts/collectors/collect-team-reference");
 
 test("missing numbers are rejected, but zero is valid", () => {
@@ -390,7 +391,12 @@ test("SH samples preserve production and use their own 75-minute cutoff", () => 
         gamesPlayed: 10
     };
 
-    function build(seconds, goals, fiveOnFiveSeconds = 1000) {
+    function build(
+        seconds,
+        goals,
+        fiveOnFiveSeconds = 1000,
+        pkGoalsAgainst = 0
+    ) {
         return buildTeamReference(
             [{
                 ...player,
@@ -402,7 +408,8 @@ test("SH samples preserve production and use their own 75-minute cutoff", () => 
                 ...player,
                 evenStrengthGoalsFor: 3,
                 evenStrengthGoalsAgainst: 4,
-                shortHandedGoalsFor: goals
+                shortHandedGoalsFor: goals,
+                powerPlayGoalsAgainst: pkGoalsAgainst
             }],
             [{
                 ...player,
@@ -461,6 +468,40 @@ test("SH samples preserve production and use their own 75-minute cutoff", () => 
     for (const seconds of [null, -1, NaN, Infinity]) {
         assert.throws(() => build(seconds, 0), /Invalid SH ice time/);
     }
+
+    const pk = build(4500, 0, 300, 3);
+    assert.equal(pk.sampleStatus, "Limited sample");
+    assert.equal(pk.shortHandedSampleStatus, "Eligible");
+    assert.equal(pk.teamOnIcePowerPlayGoalsAgainst, 3);
+    assert.equal(pk.teamOnIcePowerPlayGoalsAgainstPerGame, 0.3);
+
+    assert.equal(
+        build(4500, 0).teamOnIcePowerPlayGoalsAgainstPerGame,
+        0
+    );
+
+    assert.equal(
+        build(4499, 0, 300, null)
+            .teamOnIcePowerPlayGoalsAgainstPerGame,
+        null
+    );
+
+    assert.throws(
+        () => build(4500, 0, 300, null),
+        /Missing PK goals against/
+    );
+
+    for (const value of [-1, 1.5, "3", NaN, Infinity]) {
+        assert.throws(
+            () => build(4500, 0, 300, value),
+            /Invalid PK goals against/
+        );
+    }
+
+    assert.throws(
+        () => build(0, 0, 300, 1),
+        /PK goals against recorded without SH time/
+    );
 });
 
 test("core statistics preserve zeros and validate scoring totals", () => {
@@ -606,4 +647,45 @@ test("defensive rates use matching five-on-five and EV ice time", () => {
         () => build(-1, 10),
         /Invalid event count/
     );
+});
+
+test("PK baselines use SH eligibility independently of five-on-five", () => {
+    const metric = "teamOnIcePowerPlayGoalsAgainstPerGame";
+
+    const rows = [
+        {
+            season: 20252026,
+            playerId: 1,
+            position: "D",
+            sampleStatus: "Limited sample",
+            shortHandedSampleStatus: "Eligible",
+            [metric]: 0
+        },
+        {
+            season: 20252026,
+            playerId: 2,
+            position: "D",
+            sampleStatus: "Eligible",
+            shortHandedSampleStatus: "Eligible",
+            [metric]: 0.5
+        },
+        {
+            season: 20252026,
+            playerId: 3,
+            position: "D",
+            sampleStatus: "Eligible",
+            shortHandedSampleStatus: "Limited SH opportunity",
+            [metric]: 9
+        }
+    ];
+
+    const [baseline] = buildPenaltyKillBaselines(rows);
+
+    assert.equal(baseline.eligiblePlayers, 2);
+    assert.equal(baseline.mean, 0.25);
+    assert.equal(baseline.populationStandardDeviation, 0.25);
+    assert.equal(baseline.metric, metric);
+
+    // Calculating SH baselines must not change the original records.
+    assert.equal(rows[0].sampleStatus, "Limited sample");
 });

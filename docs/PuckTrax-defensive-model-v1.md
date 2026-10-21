@@ -53,7 +53,7 @@ The block coefficient exceeds the takeaway coefficient. Both coefficients curren
 
 Hits remain supporting context and do not affect the index. Total shot attempts against remain supporting context rather than an additional weighted suppression measure.
 
-No penalty-killing defensive component is included yet. Its possible addition requires a separate decision.
+Penalty killing is displayed as context only, with no separate contribution to the v1 defensive rating. The Special Teams tab shows team on-ice opponent PP goals against/game, SH time/game, and a same-season positional comparison among players with at least 75 SH minutes. Goals against/game combines workload and outcomes; it does not isolate PK effectiveness. Existing all-situations block and takeaway bonuses can include PK actions.
 
 ## Interpretation and future decisions
 
@@ -82,7 +82,7 @@ Outputs preserve exposure, the foundation, individual bonuses,
 and season suppression contributions.
 
 Metadata records model settings and SHA-256 fingerprints of both
-input files. Twenty-two automated tests pass. Eligibility boundaries,
+input files. Twenty-three automated tests pass. Eligibility boundaries,
 historical averages, and source fingerprints were verified.
 
 These counts describe the current reference snapshot, not permanent totals.
@@ -99,5 +99,5 @@ These counts describe the current reference snapshot, not permanent totals.
 - [x] Review calculated contributions across the comparison group.
 - [x] Agree on historical aggregation and rating conversion.
 - [ ] Add defensive results to the website.
-- [ ] Decide whether and how penalty killing contributes.
+- [x] Keep PK as display context with no separate v1 rating contribution.
 - [ ] Develop overall-player scoring separately.

@@ -1,5 +1,6 @@
 import PowerPlayTeamComparison from "./power-play-team-comparison";
 import modelConfig from "../config/model-config";
+import PenaltyKillComparison from "./penalty-kill-comparison";
 
 function number(value) {
     if (value == null || String(value).trim() === "") {
@@ -188,11 +189,11 @@ export default function SpecialTeamsPanel({ player, powerPlay, teamContext }) {
                     <>
                         <dl className="mt-5 grid gap-6 sm:grid-cols-3">
                             <Stat
-                                label="Team on-ice goals /game"
+                                label="Team on-ice SH goals for /game"
                                 value={perGame(shGoals, shGames)}
                             />
                             <Stat
-                                label="Team on-ice goals"
+                                label="Team on-ice SH goals for"
                                 value={shGoals}
                             />
                             <Stat
@@ -206,6 +207,7 @@ export default function SpecialTeamsPanel({ player, powerPlay, teamContext }) {
                             currently add to the offensive rating. Recorded
                             production remains visible below the sample minimum.
                         </p>
+                        <PenaltyKillComparison data={teamContext} />
                     </>
                 ) : (
                     <p className="mt-4 text-sm leading-relaxed text-slate-400">
@@ -217,8 +219,8 @@ export default function SpecialTeamsPanel({ player, powerPlay, teamContext }) {
 
             <p className="mt-6 text-xs leading-relaxed text-slate-400">
                 Per-game figures use all recorded games played.
-                Team figures count goals scored while this player
-                was on the ice.
+                Team figures count goals for or against while this player
+                was on the ice in the indicated situation.
             </p>
         </section>
     );

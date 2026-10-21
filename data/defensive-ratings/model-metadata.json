@@ -1,6 +1,6 @@
 {
   "modelVersion": "defense-v1-provisional",
-  "generatedAt": "2026-10-21T21:35:45.724Z",
+  "generatedAt": "2026-10-21T22:32:12.564Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
@@ -33,14 +33,14 @@
     {
       "path": "data/league-reference/team-context-skaters.csv",
       "algorithm": "sha256",
-      "hash": "387aba7303bd69e1744059f44953f01f679a8f45451b9ea1e74bb49d9b06eea8",
-      "bytes": 793134
+      "hash": "c4052144aa489642c97e5490e98480a49b413759f7147078405d893fd98396a8",
+      "bytes": 831186
     },
     {
       "path": "data/league-reference/team-context-baselines.csv",
       "algorithm": "sha256",
-      "hash": "226f066a4a55ddaa35eebf89a51d523febfd5a0063e65b353166bde5c977d651",
-      "bytes": 7567
+      "hash": "41ec29508dd2681d808f3e0d3caae398822b129ef6736da1f54811638302665b",
+      "bytes": 8786
     }
   ],
   "outputCounts": {
