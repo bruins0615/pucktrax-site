@@ -37,7 +37,7 @@ The coefficients are provisional choices, not empirically estimated values. The 
 
 ## Eligibility and missing values
 
-A season qualifies at 150 five-on-five minutes, including exactly 150.
+Offensive and defensive season ratings require at least 300 five-on-five minutes, including exactly 300. Below the minimum, recorded statistics and exposure remain visible, but the season receives no index or grade and is excluded from scoring baselines and historical averages. This is a shared minimum-evidence policy, not a guarantee of statistical reliability. Power-play and shorthanded minimums remain 75 minutes.
 
 Below-cutoff seasons retain recorded statistics but receive no defensive index or bonus-only score. Unrated is distinct from zero.
 
@@ -61,27 +61,31 @@ On-ice suppression and goal outcomes are shared team results. Blocks can overlap
 
 Playing time, games, and sample size must remain visible. Eligibility does not establish statistical reliability.
 
-Historical defensive aggregation, percentile grading, and any overall-player combination are not implemented or defined by this specification.
+Historical defensive ratings average unrounded eligible season indices equally within the configured three-season window, then calculate positional percentiles using the same grading helpers as offense. Percentile divided by 10 produces the displayed rating, rounded to one decimal. Players without eligible history remain unrated. Overall-player scoring is not implemented.
 
-## Saved season implementation
+## Saved implementation and outputs
 
 Run `node scripts/models/calculate-defensive-ratings.js` to calculate
-season indices from the saved team-context reference files.
+season and historical ratings from the saved team-context reference files.
 
 Outputs:
+
 - `data/defensive-ratings/season-defensive-indices.csv`
+- `data/defensive-ratings/historical-defensive-ratings.csv`
 - `data/defensive-ratings/model-metadata.json`
 
-The current snapshot contains 2,784 player-seasons: 2,225 eligible
-indices and 559 unscored records. Outputs preserve exposure, the
-foundation, individual bonuses, and suppression contributions.
+The current snapshot contains 2,784 player-seasons: 2,020 eligible
+indices and 764 unscored records. Historical outputs contain 1,196
+players: 864 rated and 332 without eligible history.
+
+Outputs preserve exposure, the foundation, individual bonuses,
+and season suppression contributions.
 
 Metadata records model settings and SHA-256 fingerprints of both
-input files. Nineteen automated tests pass. Saved contribution sums,
-eligibility handling, and fingerprints were verified.
+input files. Twenty-two automated tests pass. Eligibility boundaries,
+historical averages, and source fingerprints were verified.
 
-No defensive percentile grades or historical defensive aggregation
-are calculated yet. These counts describe this reference snapshot.
+These counts describe the current reference snapshot, not permanent totals.
 
 ## Implementation checklist
 
@@ -89,11 +93,11 @@ are calculated yet. These counts describe this reference snapshot.
 - [x] Collect league-wide suppression, blocks, and takeaways.
 - [x] Build same-season positional baselines.
 - [x] Review multiple players and historical seasons.
-- [x] Agree on the provisional formula and 150-minute cutoff.
+- [x] Agree on the provisional formula and 300-minute cutoff.
 - [x] Record coefficients in shared configuration.
 - [x] Implement and test season defensive indices.
 - [x] Review calculated contributions across the comparison group.
-- [ ] Agree on historical aggregation and rating conversion.
+- [x] Agree on historical aggregation and rating conversion.
 - [ ] Add defensive results to the website.
 - [ ] Decide whether and how penalty killing contributes.
 - [ ] Develop overall-player scoring separately.

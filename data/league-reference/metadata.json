@@ -1,12 +1,12 @@
 {
-  "collectedAt": "2026-10-15T12:15:36.064Z",
+  "collectedAt": "2026-10-21T21:24:08.680Z",
   "seasons": [
     20232024,
     20242025,
     20252026
   ],
   "gameTypeId": 2,
-  "minimumMinutes5v5": 150,
+  "minimumMinutes5v5": 300,
   "timeSource": "scoringRates.timeOnIcePerGame5v5 * gamesPlayed; approximate",
   "standardDeviation": "Population; eligible skaters equally weighted within season and NHL position",
   "reports": [

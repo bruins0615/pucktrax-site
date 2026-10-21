@@ -4,7 +4,7 @@ This specification records the subsequent scoring decisions made after the initi
 
 ## Season score
 
-For each season, calculate positional z-scores for individual five-on-five rates among NHL skaters with at least 150 five-on-five minutes. Keep the NHL-provided C, L, R, and D positions.
+For each season, calculate positional z-scores for individual five-on-five rates among NHL skaters with at least 300 five-on-five minutes. Keep the NHL-provided C, L, R, and D positions.
 
 ```text
 Z(metric) = (player rate − same-season positional mean)
@@ -28,7 +28,7 @@ The combined index is not itself a z-score. Zero is not the combined league aver
 
 ## Eligibility, missingness, and exposure
 
-- The combined trial index is calculated only for player-seasons meeting the 150-minute five-on-five minimum with valid core inputs and PP points/game.
+- The combined trial index is calculated only for player-seasons meeting the 300-minute five-on-five minimum with valid core inputs and PP points/game.
 - Retain below-threshold seasons and their recorded production in the data, but do not substitute zero for an unavailable index.
 - Retain observed qualifying scores without regression, shrinkage, or sample-size penalties.
 - Show games played, total five-on-five minutes, time/game, and eligible historical season count beside results.
@@ -63,7 +63,7 @@ Repository reference directory: `/Users/andrewvayo/dev/pucktrax-site/data/league
 - `powerplay-skaters.csv` and `powerplay-baselines.csv`: individual PP production, exposure, and display baselines.
 - `team-context-skaters.csv` and `team-context-baselines.csv`: team-context comparisons.
 
-Read-only calculations successfully produced trial combined indices for 2,225 eligible player-seasons across the three completed seasons. Reviewed named examples, changing roles/results, and short qualifying samples. This verifies calculation behavior, not predictive accuracy or final model validity.
+Read-only calculations successfully produced trial combined indices for 2,225 eligible player-seasons across the three completed seasons under the previous 150-minute minimum. Reviewed named examples, changing roles/results, and short qualifying samples. This verifies calculation behavior, not predictive accuracy or final model validity.
 
 The scoring script, saved offensive ratings, and website player profiles are implemented. The website reads saved data and presents offense separately from overall player value. No overall player grade is assigned.
 
@@ -88,8 +88,8 @@ No regression or reliability adjustment is applied. Exposure and historical cove
 
 The user built `scripts/models/calculate-offensive-ratings.js` with guided edits. It reads local league-reference CSVs without API calls and saves:
 
-- `data/offensive-ratings/season-offensive-ratings.csv`: all 2,784 player-season rows, including 2,225 scored records and 559 unscored rows.
-- `data/offensive-ratings/historical-offensive-ratings.csv`: 1,196 players, including 957 rated and 239 without eligible history.
+- `data/offensive-ratings/season-offensive-ratings.csv`: 2,784 player-seasons, including 2,020 scored and 764 unscored records.
+- `data/offensive-ratings/historical-offensive-ratings.csv`: 1,196 players, including 864 rated and 332 without eligible history.
 - `data/offensive-ratings/model-metadata.json`: model settings, output counts, and SHA-256 fingerprints and byte sizes of the exact scoring input files read during calculation.
 
 Counts describe the current reference snapshot, not permanent expected totals. Season outputs retain each metric's z-score and weighted contribution, five-on-five score, PP addition, and combined index. Historical outputs retain averaged five-on-five and PP components. Saved numeric indices and percentiles are not rounded for display; ratings are rounded to one decimal.

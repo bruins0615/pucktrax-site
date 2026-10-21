@@ -106,7 +106,7 @@ test("season score applies the agreed weights and PP addition", () => {
     assert.ok(Math.abs(result.offensiveIndex - 1.155) < 1e-12);
 });
 
-test("five-on-five eligibility starts at 150 minutes", () => {
+test("five-on-five eligibility starts at 300 minutes", () => {
     const player = {
         playerId: 1,
         seasonId: 20252026,
@@ -116,9 +116,9 @@ test("five-on-five eligibility starts at 150 minutes", () => {
     };
 
     for (const [secondsPerGame, expectedStatus] of [
-        [899.9, "Limited sample"],
-        [900, "Eligible"],
-        [900.1, "Eligible"]
+        [1799.9, "Limited sample"],
+        [1800, "Eligible"],
+        [1800.1, "Eligible"]
     ]) {
         const scoring = {
             ...player,
@@ -519,7 +519,7 @@ test("defensive rates use matching five-on-five and EV ice time", () => {
         return buildTeamReference(
             [{
                 ...player,
-                timeOnIcePerGame5v5: 1200,
+                timeOnIcePerGame5v5: 1800,
                 usatFor: 80,
                 usatAgainst: unblockedAgainst
             }],
@@ -532,7 +532,7 @@ test("defensive rates use matching five-on-five and EV ice time", () => {
             [{
                 ...player,
                 timeOnIce: 24000,
-                evTimeOnIce: 18000,
+                evTimeOnIce: 21000,
                 shTimeOnIce: 0
             }],
             20252026,
@@ -571,17 +571,17 @@ test("defensive rates use matching five-on-five and EV ice time", () => {
         /Invalid event count/
     );
 
-    assert.equal(result.estimatedMinutes5v5, 200);
-    assert.equal(result.evenStrengthMinutes, 300);
+    assert.equal(result.estimatedMinutes5v5, 300);
+    assert.equal(result.evenStrengthMinutes, 350);
 
     assert.equal(
         result.teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5,
-        30
+        20
     );
 
     assert.equal(
         result.teamOnIceGoalsAgainstPer60EvenStrength,
-        2
+        12 / 7
     );
 
     const zero = build(0, 0);

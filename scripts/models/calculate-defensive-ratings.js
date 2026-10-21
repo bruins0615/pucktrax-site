@@ -11,7 +11,9 @@ const {
     requireNumber,
     baselineKey,
     indexUnique,
-    playerSeasonKey
+    playerSeasonKey,
+    addPercentileRatings,
+    buildHistoricalScores
 } = require("./calculate-offensive-ratings");
 
 function nonnegativeNumber(value, label) {
@@ -196,6 +198,26 @@ function main() {
         calculateDefensiveSeasonScore(record, baselinesByKey)
     );
 
+    const seasonRatings = addPercentileRatings(
+        scores,
+        (record) => `${record.season}-${record.position}`,
+        "defensiveIndex",
+        "defenseRating"
+    );
+
+    const historicalScores = buildHistoricalScores(
+        scores,
+        "defensiveIndex",
+        ["defensiveFoundation", "blockBonus", "takeawayBonus"]
+    );
+
+    const historicalRatings = addPercentileRatings(
+        historicalScores,
+        (record) => record.position,
+        "defensiveIndex",
+        "defenseRating"
+    );
+
     const eligibleCount = scores.filter(
         (record) => record.defensiveIndex !== null
     ).length;
@@ -203,13 +225,25 @@ function main() {
     const directory = path.resolve("data/defensive-ratings");
     fs.mkdirSync(directory, { recursive: true });
 
-    const columns = [
-        ...new Set(scores.flatMap((record) => Object.keys(record)))
-    ];
+    function saveRatings(filename, rows) {
+        const columns = [
+            ...new Set(rows.flatMap((record) => Object.keys(record)))
+        ];
 
-    atomicWrite(
-        path.join(directory, "season-defensive-indices.csv"),
-        stringify(scores, { header: true, columns })
+        atomicWrite(
+            path.join(directory, filename),
+            stringify(rows, { header: true, columns })
+        );
+    }
+
+    saveRatings(
+        "season-defensive-indices.csv",
+        seasonRatings
+    );
+
+    saveRatings(
+        "historical-defensive-ratings.csv",
+        historicalRatings
     );
 
     atomicWrite(
@@ -234,14 +268,32 @@ function main() {
                 "Proportional positive credit. No positional-average subtraction.",
             missingDataPolicy:
                 "Below-cutoff seasons remain unscored. Invalid eligible inputs fail the run.",
+            seasonComparisonGroup:
+                "Same season and NHL position; eligible defensive season indices.",
+            historicalAggregation:
+                "Equal average of eligible season indices within the configured " +
+                "three-season window, followed by positional percentile calculation.",
+            historicalComparisonGroup:
+                "Latest recorded NHL position within the historical window; " +
+                "players with at least one eligible season.",
+            percentileMethod:
+                "100 * (players below + half the players tied) / comparison group size. " +
+                "Uses unrounded indices.",
+            ratingMethod:
+                "Percentile divided by 10, rounded to one decimal.",
             sourceFingerprints,
             outputCounts: {
-                seasonRecords: scores.length,
-                eligibleSeasonIndices: eligibleCount
+                seasonRecords: seasonRatings.length,
+                eligibleSeasonIndices: eligibleCount,
+                historicalRecords: historicalRatings.length,
+                ratedHistoricalPlayers: historicalRatings.filter(
+                    (record) => record.defensiveIndex !== null
+                ).length
             },
             note:
-                "Provisional descriptive defensive indices only. " +
-                "No historical aggregation, percentile grades, or overall player score. " +
+                "Provisional descriptive defensive ratings, not overall player value. " +
+                "Season and historical grading use the same shared helpers as offense. " +
+                "A rounded 10.0 does not indicate perfection. " +
                 "On-ice results are unadjusted for teammates, goaltending, opponents and deployment."
         }, null, 2) + "\n"
     );
@@ -262,7 +314,7 @@ function main() {
     }
 
     console.table(
-        scores
+        seasonRatings
             .filter(
                 (record) =>
                     record.season === String(MODEL_CONFIG.latestCompletedSeason) &&
@@ -274,7 +326,32 @@ function main() {
                 foundation: display(record.defensiveFoundation),
                 blockBonus: display(record.blockBonus),
                 takeawayBonus: display(record.takeawayBonus),
-                defensiveIndex: display(record.defensiveIndex)
+                defensiveIndex: display(record.defensiveIndex),
+                defenseRating:
+                    record.defenseRating === null
+                        ? "Unrated"
+                        : record.defenseRating.toFixed(1)
+            }))
+    );
+
+    console.log("\nThree-season defensive view:");
+
+    console.table(
+        historicalRatings
+            .filter((record) => examplePlayers.has(record.player))
+            .map((record) => ({
+                player: record.player,
+                position: record.position,
+                eligibleSeasons: record.eligibleSeasons,
+                averageIndex: display(record.defensiveIndex),
+                percentile:
+                    record.percentile === null
+                        ? "Unrated"
+                        : record.percentile.toFixed(1),
+                defenseRating:
+                    record.defenseRating === null
+                        ? "Unrated"
+                        : record.defenseRating.toFixed(1)
             }))
     );
 

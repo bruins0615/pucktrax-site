@@ -1,6 +1,6 @@
 {
   "modelVersion": "offense-v1-provisional",
-  "generatedAt": "2026-10-20T18:33:52.439Z",
+  "generatedAt": "2026-10-21T21:35:35.391Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
@@ -13,7 +13,7 @@
     "individualShotsForPer60": 0.1
   },
   "powerPlayCoefficient": 1,
-  "minimumMinutes5v5": 150,
+  "minimumMinutes5v5": 300,
   "minimumPowerPlayMinutesForSampleLabel": 75,
   "powerPlayPolicy": "Positive credit for all recorded PP points/game, including below the PP sample threshold.",
   "seasonComparisonGroup": "Same season and NHL position; eligible five-on-five players.",
@@ -33,14 +33,14 @@
     {
       "path": "data/league-reference/skaters.csv",
       "algorithm": "sha256",
-      "hash": "b24c9a46578284a233ed67a721cfa3c3d0af92f901e781e17d0f5388aea063d7",
-      "bytes": 272004
+      "hash": "e8954b5a57daa1bdcc8f99e7dc77b954b0dfe8ffa19750028e967ced4696a7fc",
+      "bytes": 273229
     },
     {
       "path": "data/league-reference/baselines.csv",
       "algorithm": "sha256",
-      "hash": "1518c239dde67190c48635a32e950f4497564a1512a6c68190f7f3438b29a789",
-      "bytes": 4163
+      "hash": "65b9754389558047964edb804da81d45ee533d70433f656f00e46a9ef2b1d18d",
+      "bytes": 4143
     },
     {
       "path": "data/league-reference/powerplay-skaters.csv",

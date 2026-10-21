@@ -1,12 +1,12 @@
 {
-  "collectedAt": "2026-10-21T18:34:03.355Z",
+  "collectedAt": "2026-10-21T21:32:14.529Z",
   "seasons": [
     20232024,
     20242025,
     20252026
   ],
   "gameTypeId": 2,
-  "minimumMinutes5v5": 150,
+  "minimumMinutes5v5": 300,
   "minimumShortHandedMinutes": 75,
   "shortHandedPolicy": "Team SH goals divided by all recorded games played. SH sample labels use the SH minute cutoff independently of five-on-five eligibility. Recorded SH production is retained below the cutoff. No SH baseline or rating contribution is calculated.",
   "reports": [

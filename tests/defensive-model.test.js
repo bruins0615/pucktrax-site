@@ -6,7 +6,9 @@ const {
 } = require("../scripts/models/calculate-defensive-ratings");
 
 const {
-    baselineKey
+    baselineKey,
+    addPercentileRatings,
+    buildHistoricalScores
 } = require("../scripts/models/calculate-offensive-ratings");
 
 const UNBLOCKED =
@@ -22,9 +24,9 @@ function fixture(overrides = {}) {
         player: "Example Player",
         position: "D",
         gamesPlayed: "10",
-        estimatedMinutes5v5: "150",
-        evenStrengthMinutes: "180",
-        allSituationsMinutes: "200",
+        estimatedMinutes5v5: "300",
+        evenStrengthMinutes: "330",
+        allSituationsMinutes: "400",
         [UNBLOCKED]: "35",
         [GOALS]: "3.5",
         [BLOCKS]: "4",
@@ -92,15 +94,15 @@ test("zero actions earn zero bonus without a deduction", () => {
     close(result.defensiveIndex, result.defensiveFoundation);
 });
 
-test("defensive eligibility begins at exactly 150 five-on-five minutes", () => {
-    for (const minutes of [149.999, 150, 150.001]) {
+test("defensive eligibility begins at exactly 300 five-on-five minutes", () => {
+    for (const minutes of [299.999, 300, 300.001]) {
         const { record, baselines } = fixture({
             estimatedMinutes5v5: String(minutes)
         });
 
         const result = calculateDefensiveSeasonScore(record, baselines);
 
-        if (minutes < 150) {
+        if (minutes < 300) {
             assert.equal(result.sampleStatus, "Limited sample");
             assert.equal(result.defensiveIndex, null);
             assert.equal(result.blockBonus, null);
@@ -155,4 +157,145 @@ test("missing or unusable defensive baselines are rejected", () => {
         () => calculateDefensiveSeasonScore(record, baselines),
         /Unavailable defensive baseline/
     );
+});
+
+test("defense and offense share percentile and tie behavior", () => {
+    const values = [0, 1, 1, 3, null];
+
+    const offense = addPercentileRatings(
+        values.map((value) => ({
+            position: "D",
+            offensiveIndex: value
+        })),
+        (record) => record.position,
+        "offensiveIndex"
+    );
+
+    const defense = addPercentileRatings(
+        values.map((value) => ({
+            position: "D",
+            defensiveIndex: value
+        })),
+        (record) => record.position,
+        "defensiveIndex",
+        "defenseRating"
+    );
+
+    assert.deepEqual(
+        defense.map((record) => record.percentile),
+        [12.5, 50, 50, 87.5, null]
+    );
+
+    assert.deepEqual(
+        defense.map((record) => record.defenseRating),
+        offense.map((record) => record.offenseRating)
+    );
+
+    assert.equal(defense[4].comparisonGroupSize, null);
+    assert.equal(Object.hasOwn(defense[0], "offenseRating"), false);
+});
+
+test("defensive history averages eligible indices equally within the window", () => {
+    const common = {
+        playerId: "1",
+        player: "Example Player",
+        position: "D"
+    };
+
+    const records = [
+        {
+            ...common,
+            season: "20232024",
+            gamesPlayed: 20,
+            estimatedMinutes5v5: 200,
+            defensiveFoundation: 0.8,
+            blockBonus: 0.15,
+            takeawayBonus: 0.05,
+            defensiveIndex: 1
+        },
+        {
+            ...common,
+            season: "20242025",
+            gamesPlayed: 80,
+            estimatedMinutes5v5: 1200,
+            defensiveFoundation: 2.6,
+            blockBonus: 0.3,
+            takeawayBonus: 0.1,
+            defensiveIndex: 3
+        },
+        {
+            ...common,
+            position: "C",
+            season: "20252026",
+            gamesPlayed: 2,
+            estimatedMinutes5v5: 30,
+            defensiveFoundation: null,
+            blockBonus: null,
+            takeawayBonus: null,
+            defensiveIndex: null
+        },
+        {
+            ...common,
+            position: "R",
+            season: "20262027",
+            gamesPlayed: 40,
+            estimatedMinutes5v5: 600,
+            defensiveFoundation: 99,
+            blockBonus: 0,
+            takeawayBonus: 0,
+            defensiveIndex: 99
+        }
+    ];
+
+    const [history] = buildHistoricalScores(
+        records,
+        "defensiveIndex",
+        ["defensiveFoundation", "blockBonus", "takeawayBonus"]
+    );
+
+    close(history.defensiveIndex, 2);
+    close(history.defensiveFoundation, 1.7);
+    close(history.blockBonus, 0.225);
+    close(history.takeawayBonus, 0.075);
+
+    assert.equal(history.availableSeasons, 3);
+    assert.equal(history.eligibleSeasons, 2);
+    assert.equal(history.includedSeasons, "20232024,20242025");
+    assert.equal(history.position, "C");
+    assert.equal(history.gamesPlayedInRecordedSeasons, 102);
+    assert.equal(history.minutes5v5InRecordedSeasons, 1430);
+    assert.equal(history.gamesPlayedInEligibleSeasons, 100);
+    assert.equal(history.minutes5v5InEligibleSeasons, 1400);
+});
+
+test("defensive history without eligible seasons remains unrated", () => {
+    const history = buildHistoricalScores(
+        [{
+            playerId: "1",
+            player: "Example Player",
+            position: "D",
+            season: "20252026",
+            gamesPlayed: 6,
+            estimatedMinutes5v5: 75,
+            defensiveFoundation: null,
+            blockBonus: null,
+            takeawayBonus: null,
+            defensiveIndex: null
+        }],
+        "defensiveIndex",
+        ["defensiveFoundation", "blockBonus", "takeawayBonus"]
+    );
+
+    const [result] = addPercentileRatings(
+        history,
+        (record) => record.position,
+        "defensiveIndex",
+        "defenseRating"
+    );
+
+    assert.equal(result.eligibleSeasons, 0);
+    assert.equal(result.gamesPlayedInRecordedSeasons, 6);
+    assert.equal(result.minutes5v5InRecordedSeasons, 75);
+    assert.equal(result.defensiveIndex, null);
+    assert.equal(result.defenseRating, null);
 });

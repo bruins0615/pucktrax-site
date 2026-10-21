@@ -6,7 +6,7 @@ Status: implemented as `offense-v1-provisional`. Ready to support development of
 
 - [x] Define individual five-on-five goals, primary assists, secondary assists, and shots on goal as scoring inputs.
 - [x] Implement agreed 54/27/9/10 weights and individual PP points/game addition.
-- [x] Apply the 150-minute five-on-five eligibility minimum.
+- [x] Apply the 300-minute five-on-five eligibility minimum.
 - [x] Average eligible season indices equally across the three-season historical window, then calculate positional percentiles.
 - [x] Display decimal 0–10 offensive ratings, keeping unrated distinct from zero.
 - [x] Preserve recorded production, games, minutes, and eligible-season counts.

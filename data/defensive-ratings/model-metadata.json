@@ -1,12 +1,12 @@
 {
   "modelVersion": "defense-v1-provisional",
-  "generatedAt": "2026-10-21T19:21:42.065Z",
+  "generatedAt": "2026-10-21T21:35:45.724Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
     "20252026"
   ],
-  "minimumMinutes5v5": 150,
+  "minimumMinutes5v5": 300,
   "suppressionWeights": {
     "teamEstimatedOnIceUnblockedAttemptsAgainstPer60_5v5": 0.7,
     "teamOnIceGoalsAgainstPer60EvenStrength": 0.3
@@ -24,23 +24,30 @@
   },
   "bonusPolicy": "Proportional positive credit. No positional-average subtraction.",
   "missingDataPolicy": "Below-cutoff seasons remain unscored. Invalid eligible inputs fail the run.",
+  "seasonComparisonGroup": "Same season and NHL position; eligible defensive season indices.",
+  "historicalAggregation": "Equal average of eligible season indices within the configured three-season window, followed by positional percentile calculation.",
+  "historicalComparisonGroup": "Latest recorded NHL position within the historical window; players with at least one eligible season.",
+  "percentileMethod": "100 * (players below + half the players tied) / comparison group size. Uses unrounded indices.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal.",
   "sourceFingerprints": [
     {
       "path": "data/league-reference/team-context-skaters.csv",
       "algorithm": "sha256",
-      "hash": "10f183816f30405b5ba0c4d5fd920cd2329a54aa1b21c6f364e1a3d8454ebe1e",
-      "bytes": 791913
+      "hash": "387aba7303bd69e1744059f44953f01f679a8f45451b9ea1e74bb49d9b06eea8",
+      "bytes": 793134
     },
     {
       "path": "data/league-reference/team-context-baselines.csv",
       "algorithm": "sha256",
-      "hash": "9a9e4f770f20a2278f1388578ed5ba6a1d292e81f42df8e00dbb3e6d3005dd90",
-      "bytes": 7568
+      "hash": "226f066a4a55ddaa35eebf89a51d523febfd5a0063e65b353166bde5c977d651",
+      "bytes": 7567
     }
   ],
   "outputCounts": {
     "seasonRecords": 2784,
-    "eligibleSeasonIndices": 2225
+    "eligibleSeasonIndices": 2020,
+    "historicalRecords": 1196,
+    "ratedHistoricalPlayers": 864
   },
-  "note": "Provisional descriptive defensive indices only. No historical aggregation, percentile grades, or overall player score. On-ice results are unadjusted for teammates, goaltending, opponents and deployment."
+  "note": "Provisional descriptive defensive ratings, not overall player value. Season and historical grading use the same shared helpers as offense. A rounded 10.0 does not indicate perfection. On-ice results are unadjusted for teammates, goaltending, opponents and deployment."
 }

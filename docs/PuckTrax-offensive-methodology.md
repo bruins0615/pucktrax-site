@@ -127,7 +127,7 @@ Individual SH points are not yet part of the agreed initial view. They could pot
 
 | Area | Provisional threshold | Interpretation |
 |---|---|---|
-| Five-on-five rate review | 150 total 5v5 minutes | Below threshold: retain record, label limited sample, exclude from initial rate-based rankings. |
+| Five-on-five rate review | 300 total 5v5 minutes | Below threshold: retain record, label limited sample, exclude from initial rate-based rankings. |
 | Power play | 75 total PP minutes | Qualifies PP rate interpretation; below threshold retains recorded contribution with limited-opportunity context. |
 | Shorthanded | 75 total SH minutes | Meaningful SH usage flag; scoring remains sparse bonus context. |
 

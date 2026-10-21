@@ -13,7 +13,7 @@ module.exports = Object.freeze({
 
     rosterSeason: 20262027,
 
-    minimumMinutes5v5: 150,
+    minimumMinutes5v5: 300,
     minimumPowerPlayMinutes: 75,
     minimumShortHandedMinutes: 75,
 

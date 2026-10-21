@@ -151,12 +151,12 @@ function calculateSeasonScore(skater, pp, baselinesByKey) {
     return result;
 }
 
-function addPercentileRatings(records, getGroupKey, scoreField) {
+function addPercentileRatings(records, getGroupKey, scoreField, ratingField = "offenseRating") {
     const results = records.map((record) => ({
         ...record,
         comparisonGroupSize: null,
         percentile: null,
-        offenseRating: null
+        [ratingField]: null
     }));
 
     const groups = new Map();
@@ -196,7 +196,7 @@ function addPercentileRatings(records, getGroupKey, scoreField) {
             for (let index = start; index < end; index++) {
                 group[index].comparisonGroupSize = group.length;
                 group[index].percentile = percentile;
-                group[index].offenseRating =
+                group[index][ratingField] =
                     Number((percentile / 10).toFixed(1));
             }
 
@@ -207,7 +207,11 @@ function addPercentileRatings(records, getGroupKey, scoreField) {
     return results;
 }
 
-function buildHistoricalScores(seasonScores) {
+function buildHistoricalScores(
+    seasonScores,
+    scoreField = "offensiveIndex",
+    componentFields = ["fiveOnFiveScore", "powerPlayContribution"]
+) {
     const players = new Map();
 
     for (const record of seasonScores) {
@@ -226,7 +230,7 @@ function buildHistoricalScores(seasonScores) {
         const latest = history[history.length - 1];
 
         const eligible = history.filter(
-            (record) => record.offensiveIndex !== null
+            (record) => record[scoreField] !== null
         );
 
         const average = (field) =>
@@ -275,9 +279,12 @@ function buildHistoricalScores(seasonScores) {
                     ),
                 0
             ),
-            fiveOnFiveScore: average("fiveOnFiveScore"),
-            powerPlayContribution: average("powerPlayContribution"),
-            offensiveIndex: average("offensiveIndex"),
+            ...Object.fromEntries(
+                [...componentFields, scoreField].map((field) => [
+                    field,
+                    average(field)
+                ])
+            ),
             historyStatus:
                 eligible.length === 0
                     ? "No eligible history"
