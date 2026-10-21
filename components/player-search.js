@@ -67,12 +67,31 @@ function SelectControl({ id, label, value, onChange, options }) {
 }
 
 export default function PlayerSearch({ players }) {
+    const teamSeasons = [
+        ...new Set(
+            players.flatMap((player) =>
+                Object.keys(player.teamsBySeason ?? {})
+            )
+        )
+    ].sort((a, b) => b.localeCompare(a));
     const [query, setQuery] = useState("");
     const [position, setPosition] = useState("");
     const [ratingFilter, setRatingFilter] = useState("");
     const [historyFilter, setHistoryFilter] = useState("");
     const [sort, setSort] = useState("name");
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    const [teamSeason, setTeamSeason] = useState(
+        teamSeasons[0] ?? ""
+    );
+    const [team, setTeam] = useState("");
+
+    const teamOptions = [
+        ...new Set(
+            players.flatMap(
+                (player) => player.teamsBySeason?.[teamSeason] ?? []
+            )
+        )
+    ].sort();
     const id = useId();
 
     function update(setter, value) {
@@ -87,6 +106,8 @@ export default function PlayerSearch({ players }) {
         setHistoryFilter("");
         setSort("name");
         setVisibleCount(PAGE_SIZE);
+        setTeam("");
+        setTeamSeason(teamSeasons[0] ?? "");
     }
 
     const terms = normalize(query).trim().split(/\s+/).filter(Boolean);
@@ -97,6 +118,12 @@ export default function PlayerSearch({ players }) {
 
         if (!terms.every((term) => name.includes(term))) return false;
         if (position && player.position !== position) return false;
+        if (
+            team &&
+            !(player.teamsBySeason?.[teamSeason] ?? []).includes(team)
+        ) {
+            return false;
+        }
 
         if (
             historyFilter !== "" &&
@@ -146,7 +173,13 @@ export default function PlayerSearch({ players }) {
 
     const visiblePlayers = matches.slice(0, visibleCount);
     const hasFilters =
-        query || position || ratingFilter || historyFilter || sort !== "name";
+        query ||
+        position ||
+        ratingFilter ||
+        historyFilter ||
+        team ||
+        teamSeason !== (teamSeasons[0] ?? "") ||
+        sort !== "name";
 
     return (
         <div>
@@ -166,7 +199,35 @@ export default function PlayerSearch({ players }) {
                 className={`${CONTROL_STYLE} placeholder:text-slate-500`}
             />
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <SelectControl
+                    id={`${id}-team-season`}
+                    label="Team affiliation season"
+                    value={teamSeason}
+                    onChange={(value) => {
+                        setTeamSeason(value);
+                        setTeam("");
+                        setVisibleCount(PAGE_SIZE);
+                    }}
+                    options={teamSeasons.map((season) => [
+                        season,
+                        `${season.slice(0, 4)}–${season.slice(6, 8)}`
+                    ])}
+                />
+
+                <SelectControl
+                    id={`${id}-team`}
+                    label="Team in selected season"
+                    value={team}
+                    onChange={(value) => update(setTeam, value)}
+                    options={[
+                        ["", "All teams"],
+                        ...teamOptions.map((abbreviation) => [
+                            abbreviation,
+                            abbreviation
+                        ])
+                    ]}
+                />
                 <SelectControl
                     id={`${id}-position`}
                     label="Position"
@@ -220,6 +281,13 @@ export default function PlayerSearch({ players }) {
             </div>
 
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                Season selection applies to team affiliations only.
+                Ratings remain historical. Traded players match every
+                recorded team in the selected season; their profiles
+                show combined full-season performance.
+            </p>
+
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
                 Rating ranges use displayed grades. Ratings compare
                 positional peers; use the position filter for a focused
                 comparison. Unrated players appear last when sorting by rating.
@@ -262,8 +330,17 @@ export default function PlayerSearch({ players }) {
                                         <h2 className="text-base font-semibold text-white">
                                             {player.player}
                                         </h2>
+
                                         <p className="mt-1 text-sm text-slate-400">
                                             {POSITIONS[player.position] ?? player.position}
+                                        </p>
+
+                                        <p className="mt-1 text-xs text-slate-400">
+                                            {teamSeason
+                                                ? `${teamSeason.slice(0, 4)}–${teamSeason.slice(6, 8)}: `
+                                                : ""}
+                                            {(player.teamsBySeason?.[teamSeason] ?? []).join(" · ") ||
+                                                "No recorded affiliation"}
                                         </p>
                                     </div>
 

@@ -169,3 +169,19 @@ season affiliations, not verified current roster membership.
 
 This expands display coverage without changing offensive scoring.
 Twelve offline model/reference tests pass.
+
+## Directory filters and historical teams
+
+The player directory supports name search, position, displayed offensive
+rating ranges, eligible-season counts, and name/rating sorting.
+Unrated players remain distinct from a 0.0 rating and sort last when
+sorting by rating.
+
+Team filters use season-specific affiliations from `core-skaters.csv`.
+Players recorded with multiple teams match each team in that season
+without duplicate directory entries.
+
+Season selection controls team affiliations only. Ratings remain
+historical, and player cards show combined full-season performance.
+These filters do not represent verified current rosters or team-specific
+performance splits.
