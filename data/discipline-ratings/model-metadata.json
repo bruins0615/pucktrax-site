@@ -1,0 +1,43 @@
+{
+  "modelVersion": "discipline-v1-provisional",
+  "generatedAt": "2026-10-22T19:49:01.558Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "minimumMinutes5v5": 300,
+  "penaltiesDrawnBonusCoefficient": 0.1,
+  "foundation": "(Positional mean PIM/game minus player PIM/game) divided by positional population standard deviation.",
+  "drawingBonus": "Coefficient multiplied by max(0, standardized penalties drawn/game). No below-average deduction.",
+  "comparisonGroup": "Same season and NHL position; minimum five-on-five eligibility. Each eligible player equally weighted.",
+  "situations": "All penalty types and situations.",
+  "denominator": "All recorded games played.",
+  "netPenalties": "Display context only; no index contribution.",
+  "missingDataPolicy": "Below-cutoff seasons remain unscored. Invalid eligible scoring inputs fail the run.",
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/discipline-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "a46530be7e6eb5a31d20fd04380566aa5abe56a156bd7ba85e81d8c08ff9ce71",
+      "bytes": 283263
+    },
+    {
+      "path": "data/league-reference/discipline-baselines.csv",
+      "algorithm": "sha256",
+      "hash": "3e3cceede41c8de72a42de4388aac019b62e2a0e7650e006952c1abbf25eda4c",
+      "bytes": 2156
+    }
+  ],
+  "historicalAggregation": "Equal average of unrounded eligible season indices within the configured historical window.",
+  "historicalComparisonGroup": "Latest recorded NHL position within the window; players with at least one eligible season.",
+  "percentileMethod": "100 * (players below + half the players tied) / comparison group size.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal. Unrated remains distinct from zero.",
+  "outputCounts": {
+    "seasonRecords": 2784,
+    "eligibleSeasonIndices": 2020,
+    "historicalRecords": 1196,
+    "ratedHistoricalPlayers": 864
+  },
+  "note": "Provisional descriptive discipline ratings. Grading uses the same shared helpers as offense and defense. A rounded 10.0 does not indicate perfection. Penalty statistics do not equal power-play opportunities. No overall-player contribution has been assigned."
+}

@@ -13,6 +13,8 @@ This inventory describes the scripts as audited, without moving or deleting them
 | `collect-team-reference.js` | League-wide team on-ice context and positional baselines | Keep, separate from weighted individual scoring. |
 | `collect-powerplay-reference.js` | PP points/game, exposure, and qualifying positional baselines | Keep. PP baselines describe context; the score addition uses raw PP points/game. |
 | `calculate-offensive-ratings.js` | Local season scores, historical averages, percentiles, decimal ratings, metadata | Keep; rerun after consistent scoring inputs change. It makes no API requests. |
+| `collect-discipline-reference.js` | League-wide penalty statistics and positional baselines | Keep; fetches the configured historical seasons. |
+| `calculate-discipline-ratings.js` | Discipline season indices, historical grades, and source fingerprints | Keep; reads saved discipline references without API requests. |
 
 ## Completed migrations and optional diagnostics
 

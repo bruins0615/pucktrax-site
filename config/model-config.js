@@ -36,5 +36,8 @@ module.exports = Object.freeze({
     defensiveBonusCoefficients: Object.freeze({
         individualBlockedShotsPer60AllSituations: 0.05,
         individualTakeawaysPer60AllSituations: 0.025
-    })
+    }),
+
+    disciplineModelVersion: "discipline-v1-provisional",
+    penaltiesDrawnBonusCoefficient: 0.10
 });

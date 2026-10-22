@@ -1,0 +1,45 @@
+{
+  "collectedAt": "2026-10-22T19:26:43.558Z",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "minimumMinutes5v5": 300,
+  "reports": [
+    "summaryshooting",
+    "penalties"
+  ],
+  "sources": [
+    {
+      "season": 20232024,
+      "shootingRows": 924,
+      "penaltyRows": 924
+    },
+    {
+      "season": 20242025,
+      "shootingRows": 920,
+      "penaltyRows": 920
+    },
+    {
+      "season": 20252026,
+      "shootingRows": 940,
+      "penaltyRows": 940
+    }
+  ],
+  "metrics": [
+    "penaltyMinutesPerGame",
+    "penaltiesDrawnPerGame"
+  ],
+  "denominators": {
+    "eligibility": "summaryshooting.timeOnIcePerGame5v5 * gamesPlayed / 60",
+    "scoringInputs": "All recorded games played"
+  },
+  "situations": "Penalty measures include all situations and types.",
+  "standardDeviation": "Population",
+  "weighting": "Each eligible skater equally weighted within season and NHL position",
+  "missingDataPolicy": "Eligible records require valid counts. Below-cutoff missing values remain unavailable. Recorded zero remains zero.",
+  "netPenaltyPolicy": "Penalties drawn minus penalties taken; display context only.",
+  "note": "Reference data only; no indices or grades calculated. Penalty counts and minutes do not equal power-play opportunities."
+}
