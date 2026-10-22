@@ -29,6 +29,7 @@ export default function FiveOnFivePanel({ data }) {
     }
 
     const { player, baselines } = data;
+    const eligible = player.sampleStatus === "Eligible";
     const season =
         `${player.season.slice(0, 4)}–${player.season.slice(6, 8)}`;
 
@@ -44,6 +45,7 @@ export default function FiveOnFivePanel({ data }) {
         );
 
         const canCompare =
+            eligible &&
             value !== null &&
             average !== null &&
             deviation !== null &&
@@ -159,7 +161,9 @@ export default function FiveOnFivePanel({ data }) {
                             </div>
                         ) : (
                             <p className="text-xs text-slate-400">
-                                Comparison unavailable.
+                                {eligible
+                                    ? "Comparison unavailable."
+                                    : "Below the five-on-five minimum — comparison not rated."}
                             </p>
                         )}
                     </div>

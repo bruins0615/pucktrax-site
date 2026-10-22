@@ -36,6 +36,7 @@ export default function TeamContextPanel({ data }) {
     }
 
     const { player, baselines } = data;
+    const eligible = player.sampleStatus === "Eligible";
     const season =
         `${player.season.slice(0, 4)}–${player.season.slice(6, 8)}`;
 
@@ -62,6 +63,7 @@ export default function TeamContextPanel({ data }) {
                     );
 
                     const canCompare =
+                        eligible &&
                         value !== null &&
                         average !== null &&
                         deviation !== null &&
@@ -153,7 +155,9 @@ export default function TeamContextPanel({ data }) {
                                 </>
                             ) : (
                                 <p className="mt-4 text-xs text-slate-400">
-                                    Comparison unavailable.
+                                    {eligible
+                                        ? "Comparison unavailable."
+                                        : "Below the five-on-five minimum — comparison not rated."}
                                 </p>
                             )}
                         </section>
