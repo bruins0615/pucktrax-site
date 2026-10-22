@@ -5,7 +5,7 @@ import { getPlayerDirectory } from "../../lib/player-data";
 
 export const metadata = {
     title: "Find a player | PuckTrax",
-    description: "Explore historical NHL skater offensive profiles."
+    description: "Explore historical NHL skater offensive and defensive profiles."
 };
 
 export default function PlayersPage() {
@@ -42,9 +42,9 @@ export default function PlayersPage() {
                 </p>
 
                 <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                    Ratings compare positional peers. They describe offense,
-                    not overall player value. Unrated players have no
-                    eligible historical seasons.
+                    Ratings compare positional peers and describe offense
+                    and defense separately, not overall player value.
+                    Unrated indicates no eligible history for that category.
                 </p>
 
                 <div className="mt-8">

@@ -110,6 +110,14 @@ totals, rates, and saved season-index bonuses. Bonuses are matched
 by player and season; they are not direct additions to the displayed
 0–10 grade. Below-cutoff bonuses remain unavailable.
 
+The player directory displays separate historical offense and defense
+ratings with their eligible-season counts. Each category has an independent
+rating filter, and both filters can be combined. Sorting supports either
+category in ascending or descending order, with unrated players last
+and ties ordered by name. Filters use displayed grades. Team-season
+selection changes affiliation filtering, not the historical rating window.
+The existing eligible-season filter uses offensive history.
+
 ## Implementation checklist
 
 - [x] Inventory defensive candidates and limitations.

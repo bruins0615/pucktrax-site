@@ -30,8 +30,8 @@ function normalize(value) {
         .toLowerCase();
 }
 
-function ratingOf(player) {
-    const value = player.offenseRating;
+function ratingOf(player, field = "offenseRating") {
+    const value = player[field];
 
     if (value == null || String(value).trim() === "") {
         return null;
@@ -77,6 +77,7 @@ export default function PlayerSearch({ players }) {
     const [query, setQuery] = useState("");
     const [position, setPosition] = useState("");
     const [ratingFilter, setRatingFilter] = useState("");
+    const [defenseFilter, setDefenseFilter] = useState("");
     const [historyFilter, setHistoryFilter] = useState("");
     const [sort, setSort] = useState("name");
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -103,6 +104,7 @@ export default function PlayerSearch({ players }) {
         setQuery("");
         setPosition("");
         setRatingFilter("");
+        setDefenseFilter("");
         setHistoryFilter("");
         setSort("name");
         setVisibleCount(PAGE_SIZE);
@@ -115,6 +117,21 @@ export default function PlayerSearch({ players }) {
     const matches = players.filter((player) => {
         const name = normalize(player.player);
         const rating = ratingOf(player);
+        const defense = ratingOf(player, "defenseRating");
+
+        if (defenseFilter === "rated" && defense === null) return false;
+        if (defenseFilter === "unrated" && defense !== null) return false;
+
+        const defenseRange = RANGES[defenseFilter];
+
+        if (
+            defenseRange &&
+            (defense === null ||
+                defense < defenseRange[0] ||
+                defense > defenseRange[1])
+        ) {
+            return false;
+        }
 
         if (!terms.every((term) => name.includes(term))) return false;
         if (position && player.position !== position) return false;
@@ -156,8 +173,12 @@ export default function PlayerSearch({ players }) {
         if (sort === "name") return byName;
         if (sort === "name-desc") return -byName;
 
-        const first = ratingOf(a);
-        const second = ratingOf(b);
+        const ratingField = sort.startsWith("defense-")
+            ? "defenseRating"
+            : "offenseRating";
+
+        const first = ratingOf(a, ratingField);
+        const second = ratingOf(b, ratingField);
 
         // Unrated players go last in either rating sort.
         if (first === null && second === null) return byName;
@@ -165,9 +186,11 @@ export default function PlayerSearch({ players }) {
         if (second === null) return -1;
 
         return (
-            (sort === "rating-high"
-                ? second - first
-                : first - second) || byName
+            (
+                sort === "rating-high" || sort === "defense-high"
+                    ? second - first
+                    : first - second
+            ) || byName
         );
     });
 
@@ -176,6 +199,7 @@ export default function PlayerSearch({ players }) {
         query ||
         position ||
         ratingFilter ||
+        defenseFilter ||
         historyFilter ||
         team ||
         teamSeason !== (teamSeasons[0] ?? "") ||
@@ -253,6 +277,19 @@ export default function PlayerSearch({ players }) {
                 />
 
                 <SelectControl
+                    id={`${id}-defense`}
+                    label="Defensive rating"
+                    value={defenseFilter}
+                    onChange={(value) => update(setDefenseFilter, value)}
+                    options={[
+                        ["", "All ratings"],
+                        ["rated", "Rated only"],
+                        ["unrated", "Unrated"],
+                        ...Object.keys(RANGES).map((range) => [range, range])
+                    ]}
+                />
+
+                <SelectControl
                     id={`${id}-history`}
                     label="Eligible seasons"
                     value={historyFilter}
@@ -274,8 +311,10 @@ export default function PlayerSearch({ players }) {
                     options={[
                         ["name", "Name A–Z"],
                         ["name-desc", "Name Z–A"],
-                        ["rating-high", "Highest rating"],
-                        ["rating-low", "Lowest rating"]
+                        ["rating-high", "Highest offense"],
+                        ["rating-low", "Lowest offense"],
+                        ["defense-high", "Highest defense"],
+                        ["defense-low", "Lowest defense"]
                     ]}
                 />
             </div>
@@ -319,6 +358,7 @@ export default function PlayerSearch({ players }) {
                 <ul className="space-y-3">
                     {visiblePlayers.map((player) => {
                         const rating = ratingOf(player);
+                        const defense = ratingOf(player, "defenseRating");
 
                         return (
                             <li key={player.playerId}>
@@ -346,19 +386,44 @@ export default function PlayerSearch({ players }) {
 
                                     <div className="text-right">
                                         <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                                            Historical offense
+                                            Historical ratings
                                         </p>
-                                        <p className="mt-1 text-xl font-bold text-sky-300 tabular-nums">
-                                            {rating === null
-                                                ? "Unrated"
-                                                : `${rating.toFixed(1)} / 10`}
-                                        </p>
-                                        <p className="mt-1 text-xs text-slate-400">
-                                            {player.eligibleSeasons} eligible{" "}
-                                            {Number(player.eligibleSeasons) === 1
-                                                ? "season"
-                                                : "seasons"}
-                                        </p>
+
+                                        <dl className="mt-2 grid gap-3 sm:grid-cols-2 sm:gap-5">
+                                            <div>
+                                                <dt className="text-xs text-slate-400">
+                                                    Offense
+                                                </dt>
+                                                <dd className="mt-1 text-xl font-bold text-sky-300 tabular-nums">
+                                                    {rating === null
+                                                        ? "Unrated"
+                                                        : `${rating.toFixed(1)} / 10`}
+                                                </dd>
+                                                <dd className="mt-1 text-xs text-slate-400">
+                                                    {player.eligibleSeasons} eligible{" "}
+                                                    {Number(player.eligibleSeasons) === 1
+                                                        ? "season"
+                                                        : "seasons"}
+                                                </dd>
+                                            </div>
+
+                                            <div>
+                                                <dt className="text-xs text-slate-400">
+                                                    Defense
+                                                </dt>
+                                                <dd className="mt-1 text-xl font-bold text-sky-300 tabular-nums">
+                                                    {defense === null
+                                                        ? "Unrated"
+                                                        : `${defense.toFixed(1)} / 10`}
+                                                </dd>
+                                                <dd className="mt-1 text-xs text-slate-400">
+                                                    {player.defensiveEligibleSeasons} eligible{" "}
+                                                    {Number(player.defensiveEligibleSeasons) === 1
+                                                        ? "season"
+                                                        : "seasons"}
+                                                </dd>
+                                            </div>
+                                        </dl>
                                     </div>
                                 </Link>
                             </li>
