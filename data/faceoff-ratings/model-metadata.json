@@ -1,0 +1,58 @@
+{
+  "modelVersion": "faceoffs-v1-provisional",
+  "generatedAt": "2026-10-22T22:39:35.918Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "eligibility": {
+    "minimumOverallDraws": 300,
+    "minimumZoneDraws": 100,
+    "minimumSpecialTeamsMinutes": 75,
+    "minimumSpecialTeamsDraws": 50,
+    "minimumSpecialistDraws": 100
+  },
+  "zoneWeights": {
+    "defensiveZoneFaceoffWinPct": 0.5,
+    "offensiveZoneFaceoffWinPct": 0.3,
+    "neutralZoneFaceoffWinPct": 0.2
+  },
+  "formula": "Sum of zone weight multiplied by (player zone win fraction minus same-season pooled mean) divided by pooled population standard deviation.",
+  "baselineGrouping": "All qualifying NHL positions pooled; each player equally weighted. Each zone baseline uses its independently eligible pool.",
+  "combinedEligibility": "Overall minimum and all three zone minimums required. Incomplete profiles receive no partial score or redistributed weights.",
+  "contextOnly": "Overall, PP, SH and even-strength results receive no extra weight.",
+  "percentageStorage": "Fractions from 0 to 1.",
+  "missingDataPolicy": "Recorded statistics retained. Nonqualifying indices remain blank, distinct from a valid zero. Invalid eligible inputs fail the run.",
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/faceoff-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "3ee9a66fdca3c354dbc0b0c6f57254766b1385a4660a404495ce67272becae4c",
+      "bytes": 806517
+    },
+    {
+      "path": "data/league-reference/faceoff-baselines.csv",
+      "algorithm": "sha256",
+      "hash": "3a73bb9f01c51cd37b00b1149755703abc28b47881e0f4256a5840ab6fda87bf",
+      "bytes": 1714
+    }
+  ],
+  "historicalAggregation": "Equal average of unrounded eligible season indices within the configured historical window.",
+  "gradeComparisonGroups": "Season grades pool eligible indices within each season. Historical grades pool players with at least one eligible season across all NHL positions.",
+  "percentileMethod": "100 * (players below + half the players tied) / group size.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal. Unrated and not applicable remain distinct from zero.",
+  "outputCounts": {
+    "seasonRecords": 2784,
+    "eligibleSeasonIndices": 378,
+    "byStatus": {
+      "Not applicable": 1096,
+      "Incomplete zone sample": 89,
+      "Limited sample": 1221,
+      "Eligible": 378
+    },
+    "historicalRecords": 1196,
+    "ratedHistoricalPlayers": 167
+  },
+  "note": "Provisional descriptive faceoff ratings. Shared percentile grading is used across categories. A rounded 10.0 does not indicate perfection. No overall-value contribution has been assigned."
+}

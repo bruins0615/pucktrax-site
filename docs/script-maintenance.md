@@ -15,6 +15,8 @@ This inventory describes the scripts as audited, without moving or deleting them
 | `calculate-offensive-ratings.js` | Local season scores, historical averages, percentiles, decimal ratings, metadata | Keep; rerun after consistent scoring inputs change. It makes no API requests. |
 | `collect-discipline-reference.js` | League-wide penalty statistics and positional baselines | Keep; fetches the configured historical seasons. |
 | `calculate-discipline-ratings.js` | Discipline season indices, historical grades, and source fingerprints | Keep; reads saved discipline references without API requests. |
+| `collect-faceoff-reference.js` | League-wide faceoff counts, eligibility routes and pooled baselines | Keep; fetches the configured historical seasons. |
+| `calculate-faceoff-ratings.js` | Zone indices, historical faceoff grades and source fingerprints | Keep; reads saved references without API requests. |
 
 ## Completed migrations and optional diagnostics
 

@@ -39,5 +39,21 @@ module.exports = Object.freeze({
     }),
 
     disciplineModelVersion: "discipline-v1-provisional",
-    penaltiesDrawnBonusCoefficient: 0.10
+    penaltiesDrawnBonusCoefficient: 0.10,
+
+    faceoffModelVersion: "faceoffs-v1-provisional",
+
+    faceoffEligibility: Object.freeze({
+        minimumOverallDraws: 300,
+        minimumZoneDraws: 100,
+        minimumSpecialTeamsMinutes: 75,
+        minimumSpecialTeamsDraws: 50,
+        minimumSpecialistDraws: 100
+    }),
+
+    faceoffZoneWeights: Object.freeze({
+        defensiveZoneFaceoffWinPct: 0.50,
+        offensiveZoneFaceoffWinPct: 0.30,
+        neutralZoneFaceoffWinPct: 0.20
+    })
 });

@@ -1,0 +1,51 @@
+{
+  "collectedAt": "2026-10-22T22:09:21.968Z",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "reports": [
+    "faceoffwins",
+    "timeonice"
+  ],
+  "sources": [
+    {
+      "season": 20232024,
+      "faceoffRows": 924,
+      "iceTimeRows": 924
+    },
+    {
+      "season": 20242025,
+      "faceoffRows": 920,
+      "iceTimeRows": 920
+    },
+    {
+      "season": 20252026,
+      "faceoffRows": 940,
+      "iceTimeRows": 940
+    }
+  ],
+  "eligibility": {
+    "minimumOverallDraws": 300,
+    "minimumZoneDraws": 100,
+    "minimumSpecialTeamsMinutes": 75,
+    "minimumSpecialTeamsDraws": 50,
+    "minimumSpecialistDraws": 100
+  },
+  "metrics": [
+    "overallFaceoffWinPct",
+    "defensiveZoneFaceoffWinPct",
+    "offensiveZoneFaceoffWinPct",
+    "neutralZoneFaceoffWinPct",
+    "powerPlayFaceoffWinPct",
+    "shortHandedFaceoffWinPct"
+  ],
+  "percentageStorage": "Fractions from 0 to 1. Zero attempts yields null.",
+  "baselineGrouping": "Same season, all qualifying positions pooled as All. Original player positions remain unchanged.",
+  "baselineEligibility": "Each metric uses its own qualifying pool. Zone baselines do not require a complete three-zone profile.",
+  "weighting": "Each qualifying player equally weighted",
+  "standardDeviation": "Population",
+  "note": "Reference statistics only; no faceoff indices or grades. Zone and strength splits are separate, not intersections. Even-strength results are retained as context without a baseline."
+}
