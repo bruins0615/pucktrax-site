@@ -31,7 +31,7 @@ export default function PlayerTabs({ tabs }) {
         <div>
             <div
                 role="tablist"
-                aria-label="Offensive analysis"
+                aria-label="Player performance analysis"
                 className="mb-6 flex gap-6 overflow-x-auto border-b border-slate-700"
             >
                 {tabs.map((tab, index) => (
@@ -49,8 +49,8 @@ export default function PlayerTabs({ tabs }) {
                         onClick={() => setSelected(index)}
                         onKeyDown={(event) => handleKeyDown(event, index)}
                         className={`whitespace-nowrap border-b-2 pb-3 pt-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-sky-400 ${selected === index
-                                ? "border-[#67bdec] text-white"
-                                : "border-transparent text-slate-400 hover:text-white"
+                            ? "border-[#67bdec] text-white"
+                            : "border-transparent text-slate-400 hover:text-white"
                             }`}
                     >
                         {tab.label}

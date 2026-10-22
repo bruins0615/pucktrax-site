@@ -18,4 +18,4 @@ Update the specification and model metadata whenever a formula, threshold, group
 
 The current version is `offense-v1-provisional`. Grades describe recorded offensive production rather than overall player value or projections. The website player profile now displays saved ratings, season history, and five-on-five, special-teams, and team-context tabs. Player profiles display historical offensive and defensive grades with season histories. Player-style labels, the defensive analysis tab, and live Current Trend remain unimplemented.
 
-Recent agreed decisions now captured in v1: 54/27/9/10 five-on-five weighting, PP points/game multiplied by 1, no team-context score weight, no numerical SH addition, unchanged qualifying small samples, equal eligible-season indices before historical percentiles, decimal 0–10 percentile ratings, and recorded exposure alongside eligible exposure.
+Player profiles display historical offensive and defensive grades, season histories, and a defensive analysis tab. Player-style labels and live Current Trend remain unimplemented.

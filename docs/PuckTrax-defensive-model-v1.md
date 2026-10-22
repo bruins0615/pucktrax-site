@@ -99,6 +99,17 @@ Season history shows each season's grade, percentile, games, and estimated
 five-on-five minutes. The page does not combine offense and defense into
 an overall grade.
 
+The Defense tab shows the latest recorded season's five-on-five
+unblocked attempts against and even-strength goals against, with
+same-season positional averages. Fewer opposing events appear to
+the right of each comparison bar. Comparisons are hidden below
+300 five-on-five minutes while recorded statistics remain visible.
+
+Individual action cards show all-situations block and takeaway
+totals, rates, and saved season-index bonuses. Bonuses are matched
+by player and season; they are not direct additions to the displayed
+0–10 grade. Below-cutoff bonuses remain unavailable.
+
 ## Implementation checklist
 
 - [x] Inventory defensive candidates and limitations.
@@ -111,6 +122,6 @@ an overall grade.
 - [x] Review calculated contributions across the comparison group.
 - [x] Agree on historical aggregation and rating conversion.
 - [x] Display historical defensive grades, explanations, and season history on player cards.
-- [ ] Add the defensive analysis tab.
+- [x] Add the defensive analysis tab.
 - [x] Keep PK as display context with no separate v1 rating contribution.
 - [ ] Develop overall-player scoring separately.

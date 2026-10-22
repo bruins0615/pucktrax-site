@@ -8,6 +8,7 @@ import SpecialTeamsPanel from "../../../components/special-teams-panel";
 import TeamContextPanel from "../../../components/team-context-panel";
 import FiveOnFiveSummary from "../../../components/five-on-five-summary";
 import DefensiveRating from "../../../components/defensive-rating";
+import DefensivePanel from "../../../components/defensive-panel";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -324,6 +325,18 @@ export default async function PlayerPage({ params }) {
                                             <FiveOnFivePanel data={fiveOnFive} />
                                             <FiveOnFiveSummary data={fiveOnFive} />
                                         </div>
+                                    )
+                                },
+                                {
+                                    key: "defense",
+                                    label: "Defense",
+                                    content: (
+                                        <DefensivePanel
+                                            data={teamContext}
+                                            score={defensiveSeasons.find(
+                                                (season) => season.season === teamContext?.player.season
+                                            )}
+                                        />
                                     )
                                 },
                                 {
