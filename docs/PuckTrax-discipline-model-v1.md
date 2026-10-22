@@ -120,6 +120,19 @@ percentiles, ratings, eligibility handling and fingerprints were checked.
 These checks verify implementation, not the empirical validity of
 the chosen formula or coefficient.
 
+## Website display
+
+The Discipline tab shows the historical grade, eligible-season count,
+explanation, and expandable season history. Latest-season statistics
+include PIM, penalties taken, penalties drawn, and net penalties.
+
+PIM/game and penalties drawn/game have positional comparisons.
+Below 300 five-on-five minutes, recorded statistics remain visible
+but comparison bars and season scores are unavailable.
+
+The foundation and drawing bonus appear in collapsed Score calculation
+details. They are index components, not direct additions to the 0–10 grade.
+
 ## Implementation checklist
 
 - [x] Choose PIM/game as the foundation.
@@ -129,5 +142,5 @@ the chosen formula or coefficient.
 - [x] Validate inputs and implement season calculations.
 - [x] Review results across all three seasons.
 - [x] Confirm historical aggregation and grade conversion.
-- [ ] Build the Discipline tab.
+- [x] Build the Discipline tab.
 - [ ] Decide how discipline contributes to overall value.
