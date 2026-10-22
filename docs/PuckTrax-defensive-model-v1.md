@@ -87,6 +87,18 @@ historical averages, and source fingerprints were verified.
 
 These counts describe the current reference snapshot, not permanent totals.
 
+## Website display
+
+Player cards display separate historical offensive and defensive grades.
+Each grade is grouped with its explanation and expandable season history.
+Defensive ratings are read from the saved defensive exports by player ID.
+Missing or ineligible ratings display a dash and remain distinct from zero.
+
+The main defensive grade covers the configured three-season window.
+Season history shows each season's grade, percentile, games, and estimated
+five-on-five minutes. The page does not combine offense and defense into
+an overall grade.
+
 ## Implementation checklist
 
 - [x] Inventory defensive candidates and limitations.
@@ -98,6 +110,7 @@ These counts describe the current reference snapshot, not permanent totals.
 - [x] Implement and test season defensive indices.
 - [x] Review calculated contributions across the comparison group.
 - [x] Agree on historical aggregation and rating conversion.
-- [ ] Add defensive results to the website.
+- [x] Display historical defensive grades, explanations, and season history on player cards.
+- [ ] Add the defensive analysis tab.
 - [x] Keep PK as display context with no separate v1 rating contribution.
 - [ ] Develop overall-player scoring separately.

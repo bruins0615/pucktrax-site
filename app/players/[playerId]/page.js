@@ -7,6 +7,7 @@ import PlayerTabs from "../../../components/player-tabs";
 import SpecialTeamsPanel from "../../../components/special-teams-panel";
 import TeamContextPanel from "../../../components/team-context-panel";
 import FiveOnFiveSummary from "../../../components/five-on-five-summary";
+import DefensiveRating from "../../../components/defensive-rating";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -54,7 +55,17 @@ export default async function PlayerPage({ params }) {
         notFound();
     }
 
-    const { historical, seasons, coreStats, fiveOnFive, teamContext, powerPlay } = data;
+    const {
+        historical,
+        seasons,
+        defensiveHistorical,
+        defensiveSeasons,
+        coreStats,
+        fiveOnFive,
+        teamContext,
+        powerPlay
+    } = data;
+
     const hasRating =
         historical.offenseRating != null &&
         historical.offenseRating !== "";
@@ -95,7 +106,7 @@ export default async function PlayerPage({ params }) {
 
                 <div className="grid items-start gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
                     <aside
-                        aria-label="Player identity and offensive rating"
+                        aria-label="Player identity and performance ratings"
                         className="border-t-[3px] border-t-[#67bdec] pt-5 lg:border-r lg:border-r-slate-700 lg:pr-6"
                     >
                         <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
@@ -174,7 +185,7 @@ export default async function PlayerPage({ params }) {
 
                             <details className="mt-5 border-t border-slate-700 pt-4">
                                 <summary className="cursor-pointer text-sm font-semibold text-sky-400">
-                                    About this grade
+                                    About this offensive grade
                                 </summary>
 
                                 <div className="mt-3 space-y-3 text-sm leading-relaxed text-slate-300">
@@ -210,40 +221,6 @@ export default async function PlayerPage({ params }) {
                             </details>
                         </section>
 
-                        <section
-                            aria-labelledby="core-stats-heading"
-                            className="mt-6 border-t border-slate-700 pt-6"
-                        >
-                            <h2
-                                id="core-stats-heading"
-                                className="text-sm font-semibold"
-                            >
-                                {coreStats
-                                    ? `${seasonLabel(coreStats.season)} regular season`
-                                    : "Regular-season statistics"}
-                            </h2>
-
-                            {coreStats ? (
-                                <>
-                                    <p className="mt-2 text-sm text-slate-400">
-                                        {coreStats.teams}
-                                    </p>
-
-                                    <dl className="mt-4 grid grid-cols-2 gap-3">
-                                        <Stat label="Games" value={coreStats.gamesPlayed} />
-                                        <Stat label="Goals" value={coreStats.goals} />
-                                        <Stat label="Assists" value={coreStats.assists} />
-                                        <Stat label="Points" value={coreStats.points} />
-                                        <Stat label="Plus/minus" value={coreStats.plusMinus} />
-                                    </dl>
-                                </>
-                            ) : (
-                                <p className="mt-3 text-sm text-slate-400">
-                                    Detailed statistics are unavailable for this
-                                    player’s latest recorded season.
-                                </p>
-                            )}
-                        </section>
                         <details className="mt-6 border-t border-slate-700 pt-4">
                             <summary className="cursor-pointer text-sm text-slate-400">
                                 Three-season offensive history
@@ -293,6 +270,47 @@ export default async function PlayerPage({ params }) {
                                 season; zero is a valid rating.
                             </p>
                         </details>
+
+                        <DefensiveRating
+                            historical={defensiveHistorical}
+                            seasons={defensiveSeasons}
+                        />
+
+                        <section
+                            aria-labelledby="core-stats-heading"
+                            className="mt-6 border-t border-slate-700 pt-6"
+                        >
+                            <h2
+                                id="core-stats-heading"
+                                className="text-sm font-semibold"
+                            >
+                                {coreStats
+                                    ? `${seasonLabel(coreStats.season)} regular season`
+                                    : "Regular-season statistics"}
+                            </h2>
+
+                            {coreStats ? (
+                                <>
+                                    <p className="mt-2 text-sm text-slate-400">
+                                        {coreStats.teams}
+                                    </p>
+
+                                    <dl className="mt-4 grid grid-cols-2 gap-3">
+                                        <Stat label="Games" value={coreStats.gamesPlayed} />
+                                        <Stat label="Goals" value={coreStats.goals} />
+                                        <Stat label="Assists" value={coreStats.assists} />
+                                        <Stat label="Points" value={coreStats.points} />
+                                        <Stat label="Plus/minus" value={coreStats.plusMinus} />
+                                    </dl>
+                                </>
+                            ) : (
+                                <p className="mt-3 text-sm text-slate-400">
+                                    Detailed statistics are unavailable for this
+                                    player’s latest recorded season.
+                                </p>
+                            )}
+                        </section>
+
                     </aside>
 
                     <div className="min-w-0">
