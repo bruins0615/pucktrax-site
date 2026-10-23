@@ -51,7 +51,9 @@ scored again here. Penalties remain in Discipline.
 
 ## Open decisions
 
-Historical aggregation and any standalone grade remain undecided.
+Historical presentation uses separate season statistics without an
+aggregated bonus or standalone 0–10 physicality grade. Any future
+historical bonus aggregation remains undecided.
 A high hitting rank must not be presented as high overall player value.
 Availability and durability remain a separate investigation.
 
@@ -97,6 +99,19 @@ value of the chosen coefficient or cap.
 Counts describe the current snapshot, not permanent requirements.
 Existing category grades are unchanged.
 
+## Website display
+
+The Physicality tab emphasizes latest-season hits, hits/game and a
+same-season positional comparison. Below the eligibility minimum,
+recorded statistics remain visible without a comparison bar.
+
+Expandable history shows each season's games, hits, hits/game and
+sample status. No combined historical physicality grade is displayed.
+
+Hits/60, capped and uncapped bonuses, and whether the cap reduced
+credit appear in collapsed supporting details. Low-hit eligible
+players receive zero bonus without a deduction.
+
 ## Implementation checklist
 
 - [x] Classify physicality as an auxiliary contribution.
@@ -106,6 +121,6 @@ Existing category grades are unchanged.
 - [x] Compare capped and uncapped results across three seasons.
 - [x] Build and test league-wide reference collection.
 - [x] Calculate and validate season bonuses.
-- [ ] Decide historical presentation.
-- [ ] Add physicality to the player profile.
+- [x] Decide historical presentation.
+- [x] Add physicality to the player profile.
 - [ ] Decide how physicality contributes to overall value.

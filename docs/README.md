@@ -49,9 +49,9 @@ and contribute no additional index weight. The Faceoffs tab displays historical 
 independently qualified comparisons, with explicit reasons for
 incomplete combined grades.
 
-Physicality reference collection and season bonuses are implemented
-provisionally. Above-average positional hits/game earns positive credit
-with a 0.10 coefficient and 0.25 cap. Below-average hitting receives
-zero, never a deduction. Historical presentation, any standalone grade
-and overall-value contribution remain undecided. Physicality is not
-yet displayed on player profiles.
+Physicality uses a positive-only above-average positional hits/game
+bonus with a 0.10 coefficient and 0.25 cap. The Physicality tab shows
+latest-season statistics, positional comparisons and expandable
+season history. Supporting rates and bonus calculations are collapsed.
+No standalone physicality grade is assigned; historical bonus
+aggregation and overall-value contribution remain undecided.
