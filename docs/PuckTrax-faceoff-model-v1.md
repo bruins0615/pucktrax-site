@@ -176,6 +176,23 @@ the project. Saved historical averages, percentiles, grades and source
 fingerprints were verified. Calculation checks do not independently
 validate the selected weights.
 
+## Website display
+
+The Faceoffs tab shows historical grades, included seasons and expandable
+season history separately from latest-season statistics.
+
+Incomplete combined grades explicitly identify missing requirements,
+including the recorded zone draw count and required minimum.
+Individually qualifying comparisons remain visible even when the
+combined grade is incomplete.
+
+Overall, zone, PP and SH comparisons use their own eligibility rules.
+Special-teams comparisons identify regular usage or the draw-volume
+exception. No participation remains distinct from poor performance.
+
+Index contributions are available in collapsed calculation details.
+Historical grades based only on earlier seasons are clearly identified.
+
 ## Implementation checklist
 
 - [x] Classify faceoffs as an auxiliary category.
@@ -189,5 +206,5 @@ validate the selected weights.
 - [x] Agree on historical aggregation and grading.
 - [x] Build and test league-wide collection.
 - [x] Implement season indices and historical grading.
-- [ ] Build the Faceoffs tab.
+- [x] Build the Faceoffs tab.
 - [ ] Decide how faceoffs contribute to overall value.

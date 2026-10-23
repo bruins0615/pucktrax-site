@@ -44,5 +44,6 @@ Faceoff season and historical ratings are implemented provisionally
 using 50/30/20 defensive/offensive/neutral-zone weights. Comparisons
 pool qualifying takers across positions. Incomplete zone seasons remain
 unscored. PP and SH faceoff comparisons use separate qualification rules
-and contribute no additional index weight. The Faceoffs tab is not yet
-implemented.
+and contribute no additional index weight. The Faceoffs tab displays historical coverage, season history and
+independently qualified comparisons, with explicit reasons for
+incomplete combined grades.

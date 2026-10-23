@@ -10,6 +10,7 @@ import FiveOnFiveSummary from "../../../components/five-on-five-summary";
 import DefensiveRating from "../../../components/defensive-rating";
 import DefensivePanel from "../../../components/defensive-panel";
 import DisciplinePanel from "../../../components/discipline-panel";
+import FaceoffPanel from "../../../components/faceoff-panel";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -63,6 +64,7 @@ export default async function PlayerPage({ params }) {
         defensiveHistorical,
         defensiveSeasons,
         discipline,
+        faceoffs,
         coreStats,
         fiveOnFive,
         teamContext,
@@ -346,6 +348,13 @@ export default async function PlayerPage({ params }) {
                                     label: "Discipline",
                                     content: (
                                         <DisciplinePanel data={discipline} />
+                                    )
+                                },
+                                {
+                                    key: "faceoffs",
+                                    label: "Faceoffs",
+                                    content: (
+                                        <FaceoffPanel data={faceoffs} />
                                     )
                                 },
                                 {
