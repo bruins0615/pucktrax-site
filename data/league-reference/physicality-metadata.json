@@ -1,0 +1,49 @@
+{
+  "collectedAt": "2026-10-23T15:52:53.620Z",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "minimumMinutes5v5": 300,
+  "reports": [
+    "summaryshooting",
+    "realtime",
+    "timeonice"
+  ],
+  "sources": [
+    {
+      "season": 20232024,
+      "shootingRows": 924,
+      "realtimeRows": 924,
+      "iceTimeRows": 924
+    },
+    {
+      "season": 20242025,
+      "shootingRows": 920,
+      "realtimeRows": 920,
+      "iceTimeRows": 920
+    },
+    {
+      "season": 20252026,
+      "shootingRows": 940,
+      "realtimeRows": 940,
+      "iceTimeRows": 940
+    }
+  ],
+  "metrics": [
+    "hitsPerGame"
+  ],
+  "situations": "Hits include all situations.",
+  "denominators": {
+    "eligibility": "summaryshooting.timeOnIcePerGame5v5 * gamesPlayed / 60",
+    "hitsPerGame": "All recorded games played",
+    "hitsPer60AllSituations": "Exact total seconds from timeonice.timeOnIce"
+  },
+  "baselineGrouping": "Same season and NHL position",
+  "weighting": "Each eligible player equally weighted",
+  "standardDeviation": "Population",
+  "missingDataPolicy": "Eligible records require valid hit counts. Below-cutoff missing counts remain unavailable. Recorded zero remains zero.",
+  "note": "Reference statistics only; no bonus calculated. Hits/game is the scoring candidate. Hits/60 is context only. Counts do not establish hit effectiveness or isolated value."
+}

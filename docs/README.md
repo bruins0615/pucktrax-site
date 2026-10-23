@@ -9,6 +9,7 @@
 - [Defensive Model v1](PuckTrax-defensive-model-v1.md): provisional suppression formula, action bonuses, eligibility, limitations, and implementation checklist.
 - [Discipline Model v1](PuckTrax-discipline-model-v1.md): PIM/game foundation, positive drawing bonus, eligibility, historical grading, limitations, and implementation checklist.
 - [Faceoff Model v1](PuckTrax-faceoff-model-v1.md): provisional participation rules, special-teams qualification routes, data limitations, and open modeling decisions.
+- [Physicality Model v1](PuckTrax-physicality-model-v1.md): positive-only hits/game bonus, positional baselines, eligibility, cap, and implementation checklist.
 
 ## Historical reference
 
@@ -47,3 +48,10 @@ unscored. PP and SH faceoff comparisons use separate qualification rules
 and contribute no additional index weight. The Faceoffs tab displays historical coverage, season history and
 independently qualified comparisons, with explicit reasons for
 incomplete combined grades.
+
+Physicality reference collection and season bonuses are implemented
+provisionally. Above-average positional hits/game earns positive credit
+with a 0.10 coefficient and 0.25 cap. Below-average hitting receives
+zero, never a deduction. Historical presentation, any standalone grade
+and overall-value contribution remain undecided. Physicality is not
+yet displayed on player profiles.

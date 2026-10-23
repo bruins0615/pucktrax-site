@@ -55,5 +55,9 @@ module.exports = Object.freeze({
         defensiveZoneFaceoffWinPct: 0.50,
         offensiveZoneFaceoffWinPct: 0.30,
         neutralZoneFaceoffWinPct: 0.20
-    })
+    }),
+
+    physicalityModelVersion: "physicality-v1-provisional",
+    physicalityBonusCoefficient: 0.10,
+    physicalityBonusCap: 0.25
 });

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/offensive-model.test.js tests/defensive-model.test.js tests/discipline-model.test.js tests/faceoff-model.test.js"
+    "test": "node --test tests/offensive-model.test.js tests/defensive-model.test.js tests/discipline-model.test.js tests/faceoff-model.test.js tests/physicality-model.test.js"
   },
   "dependencies": {
     "csv-parse": "^7.0.3",

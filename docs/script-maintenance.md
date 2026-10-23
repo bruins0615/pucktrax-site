@@ -17,6 +17,8 @@ This inventory describes the scripts as audited, without moving or deleting them
 | `calculate-discipline-ratings.js` | Discipline season indices, historical grades, and source fingerprints | Keep; reads saved discipline references without API requests. |
 | `collect-faceoff-reference.js` | League-wide faceoff counts, eligibility routes and pooled baselines | Keep; fetches the configured historical seasons. |
 | `calculate-faceoff-ratings.js` | Zone indices, historical faceoff grades and source fingerprints | Keep; reads saved references without API requests. |
+| `collect-physicality-reference.js` | League-wide hits, exposure and hits/game positional baselines | Keep; fetches the configured historical seasons. |
+| `calculate-physicality-bonuses.js` | Positive-only season bonuses, capped and uncapped values, and fingerprints | Keep; reads saved references without API requests. |
 
 ## Completed migrations and optional diagnostics
 

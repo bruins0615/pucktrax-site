@@ -1,0 +1,40 @@
+{
+  "modelVersion": "physicality-v1-provisional",
+  "generatedAt": "2026-10-23T16:21:23.730Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "minimumMinutes5v5": 300,
+  "coefficient": 0.1,
+  "cap": 0.25,
+  "formula": "min(cap, coefficient * max(0, (player hits/game minus positional mean) / positional population standard deviation))",
+  "baselineGrouping": "Same season and NHL position",
+  "situations": "All-situations hits",
+  "scoringDenominator": "All recorded games played",
+  "contextOnly": "Hits per 60 all-situations minutes",
+  "capAppliedPolicy": "True only when the uncapped bonus exceeds the cap.",
+  "missingDataPolicy": "Below-cutoff bonuses remain unavailable. Eligible average/below-average hitting earns zero. Invalid eligible scoring inputs fail the run.",
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/physicality-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "f98498e7c1f98656864d2c9c479b6cc223c896b0af2532b3e79f29f244abb84c",
+      "bytes": 311620
+    },
+    {
+      "path": "data/league-reference/physicality-baselines.csv",
+      "algorithm": "sha256",
+      "hash": "7d75d1460b5e3b2d4b10d03c078d32c58acd8970fed32e8fafa554a6d6682cb5",
+      "bytes": 982
+    }
+  ],
+  "outputCounts": {
+    "seasonRecords": 2784,
+    "eligibleSeasonBonuses": 2020,
+    "positiveSeasonBonuses": 823,
+    "capAppliedRecords": 44
+  },
+  "note": "Provisional auxiliary bonus amounts, not direct additions to a 0–10 grade. No overall contribution, historical aggregation or standalone grade assigned."
+}
