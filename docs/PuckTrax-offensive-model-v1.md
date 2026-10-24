@@ -33,8 +33,9 @@ The combined index is not itself a z-score. Zero is not the combined league aver
 - Retain observed qualifying scores without regression, shrinkage, or sample-size penalties.
 - Show games played, total five-on-five minutes, time/game, and eligible historical season count beside results.
 - A supplemental “qualifying, short sample” label is supported in principle, but its numerical boundary has not been agreed. Do not invent one.
-- Eligibility is not proof of reliability. Casey's 2024–25 sample is approximately 157 five-on-five minutes in 14 games and remains qualifying without adjustment.
-- Keep missing production, zero production, and no playing opportunity distinct.
+- Eligibility is not proof of reliability. Casey's approximately
+  157-minute 2024–25 sample qualified under the former 150-minute rule,
+  but is ineligible under the current 300-minute minimum.- Keep missing production, zero production, and no playing opportunity distinct.
 - No manual prospect, age, reputation, or player-specific exceptions affect the descriptive score.
 
 ## Historical aggregation and outputs
@@ -109,9 +110,51 @@ grade as a single-season rating.
 
 Display games played, totals, plus/minus, and usage as context. Show actual per-60 rates prominently, positional averages secondarily, and plain-language comparison labels. Standardized detail is expandable. Team context stays unweighted and clearly distinguishes 5v5 from EV coverage. Current Trend and projected output remain unimplemented.
 
-## Implementation status and remaining work
+## Implementation checklist
 
-See [Offensive category checklist](offense-checklist.md) for completed implementation and deferred improvements. The model remains provisional. Continue reviewing results across roles, positions, seasons, and sample sizes. Formula implementation and automated checks do not independently validate the chosen weights. Current Trend, projections, overall player grades, and player-style descriptors remain separate future work. Numeric exposure is displayed; an optional short-qualifying-sample label has no agreed boundary.
+The model is implemented as `offense-v1-provisional`. Calculation tests
+do not independently validate its weights or interpretation.
+
+### Completed
+
+- [x] Define five-on-five goals, primary assists, secondary assists,
+      and shots on goal as scoring inputs.
+- [x] Implement 54/27/9/10 weights and the individual PP points/game addition.
+- [x] Apply the 300-minute five-on-five eligibility minimum.
+- [x] Average eligible season indices equally, then calculate historical
+      positional percentiles.
+- [x] Display decimal 0–10 ratings, keeping unrated distinct from zero.
+- [x] Preserve production, games, minutes and eligible-season counts.
+- [x] Collect league-wide core, five-on-five, PP, SH and team-context data.
+- [x] Keep team comparisons separate from the offensive score.
+- [x] Apply independent 75-minute PP and SH comparison thresholds.
+- [x] Hide comparison bars below their applicable eligibility thresholds.
+- [x] Build historical grades, season histories and analysis tabs.
+- [x] Build player search, rating filters, sorting and historical team filters.
+- [x] Match traded players to each recorded team without duplicate entries.
+- [x] Review desktop and phone behavior.
+- [x] Establish automated checks, source fingerprints and Git checkpoints.
+
+### Deferred improvements
+
+- [ ] Continue reviewing results across roles, positions, seasons
+      and sample sizes.
+- [ ] Decide whether a supplemental short-qualifying-sample label is useful.
+- [ ] Implement live Current Trend with matching current-season baselines.
+- [ ] Verify current-roster coverage separately from historical affiliations.
+- [ ] Develop projections separately from recorded performance.
+- [ ] Consider future SH scoring or additional SH goals-for baselines
+      through a separate methodological decision.
+- [ ] Define offense's contribution to overall value and any player-style
+      labels through the project-wide modeling process.
+
+### Maintenance
+
+Keep this checklist aligned with implementation. Do not silently roll
+the historical window forward. Dataset sizes and test counts describe
+snapshots, not permanent requirements.
+
+See [Model checklist](model-checklist.md) for project-wide decisions.
 
 ## Player profile and team power-play context
 

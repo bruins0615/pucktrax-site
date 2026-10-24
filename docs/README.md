@@ -2,15 +2,15 @@
 
 ## Current references
 
-- [Offensive Model v1](PuckTrax-offensive-model-v1.md): canonical provisional formula, weights, eligibility, historical aggregation, percentile grading, sample display, implementation, and limitations.
+- [Offensive Model v1](PuckTrax-offensive-model-v1.md): canonical provisional formula, weights, eligibility, historical aggregation, grading, presentation, implementation checklist, and deferred improvements.
 - [Collector guide](collector-guide.md): comparison-player and Bruins entry points, shared collection, output destinations, and current roster limitations.
 - [Script maintenance](script-maintenance.md): script lifecycle, what to rerun, completed migrations, and maintenance priorities.
-- [Offensive checklist](offense-checklist.md): completed implementation, deferred improvements, and readiness to begin the next category.
 - [Defensive Model v1](PuckTrax-defensive-model-v1.md): provisional suppression formula, action bonuses, eligibility, limitations, and implementation checklist.
 - [Discipline Model v1](PuckTrax-discipline-model-v1.md): PIM/game foundation, positive drawing bonus, eligibility, historical grading, limitations, and implementation checklist.
 - [Faceoff Model v1](PuckTrax-faceoff-model-v1.md): provisional participation rules, special-teams qualification routes, data limitations, and open modeling decisions.
 - [Physicality Model v1](PuckTrax-physicality-model-v1.md): positive-only hits/game bonus, positional baselines, eligibility, cap, and implementation checklist.
-- [Veteran Season Participation](PuckTrax-availability-model-v1.md): career eligibility, fixed participation benchmark, zero-game coverage, and open scoring decisions.
+- [Veteran Season Participation](PuckTrax-availability-model-v1.md): entering-season career eligibility, benchmark-based grading, historical averaging, coverage rules, implementation, and remaining decisions.
+- [Model checklist](model-checklist.md): project-wide implementation status, remaining coverage work, overall-value decisions, and later stages.
 
 ## Historical reference
 
@@ -24,9 +24,9 @@ Update the specification and model metadata whenever a formula, threshold, group
 
 Core categories: offense and defense.
 
-Auxiliary categories: discipline, faceoffs, and any additional supporting
-contributions approved separately. Auxiliary categories are not assumed
-to carry the same overall importance as core categories.
+Auxiliary categories: discipline, faceoffs, physicality, and veteran
+availability. Their overall contributions remain undecided and are
+not assumed to carry the same importance as core categories.
 
 Overall weights remain undecided. Faceoff participation must be considered
 before assigning a rating; players without that responsibility should
@@ -56,3 +56,12 @@ latest-season statistics, positional comparisons and expandable
 season history. Supporting rates and bonus calculations are collapsed.
 No standalone physicality grade is assigned; historical bonus
 aggregation and overall-value contribution remain undecided.
+
+Veteran Availability season and historical grades are implemented.
+Eligibility requires 250 career NHL regular-season appearances entering
+the evaluated season. The season grade is games played divided by 82,
+multiplied by 10 and capped at 10.0. Historical grades average eligible
+seasons equally. Verified zero-game seasons count as zero; documented
+outside-NHL seasons are excluded. Unresolved coverage remains ungraded
+and is explicitly flagged. The Availability tab displays historical
+coverage and season-level explanations. Coverage review remains open.
