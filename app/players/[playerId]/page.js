@@ -12,6 +12,7 @@ import DefensivePanel from "../../../components/defensive-panel";
 import DisciplinePanel from "../../../components/discipline-panel";
 import FaceoffPanel from "../../../components/faceoff-panel";
 import PhysicalityPanel from "../../../components/physicality-panel";
+import AvailabilityPanel from "../../../components/availability-panel";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -67,6 +68,7 @@ export default async function PlayerPage({ params }) {
         discipline,
         faceoffs,
         physicality,
+        availability,
         coreStats,
         fiveOnFive,
         teamContext,
@@ -364,6 +366,13 @@ export default async function PlayerPage({ params }) {
                                     label: "Physicality",
                                     content: (
                                         <PhysicalityPanel data={physicality} />
+                                    )
+                                },
+                                {
+                                    key: "availability",
+                                    label: "Availability",
+                                    content: (
+                                        <AvailabilityPanel data={availability} />
                                     )
                                 },
                                 {
