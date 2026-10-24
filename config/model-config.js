@@ -59,5 +59,9 @@ module.exports = Object.freeze({
 
     physicalityModelVersion: "physicality-v1-provisional",
     physicalityBonusCoefficient: 0.10,
-    physicalityBonusCap: 0.25
+    physicalityBonusCap: 0.25,
+
+    availabilityModelVersion: "availability-v1-provisional",
+    minimumCareerGamesForAvailability: 250,
+    availabilityFullCreditGames: 82
 });

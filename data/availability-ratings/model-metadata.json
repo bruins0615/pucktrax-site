@@ -1,0 +1,39 @@
+{
+  "modelVersion": "availability-v1-provisional",
+  "generatedAt": "2026-10-24T01:28:39.354Z",
+  "historicalSeasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "minimumCareerGames": 250,
+  "fullCreditGames": 82,
+  "seasonFormula": "min(10, gamesPlayed / fullCreditGames * 10)",
+  "historicalFormula": "Equal average of unrounded eligible season grades",
+  "gradingMethod": "Fixed benchmark, not percentile",
+  "precision": "Full precision saved. Display grades to one decimal.",
+  "missingDataPolicy": "Verified zero receives 0.0. Below-minimum, unresolved and outside-NHL seasons remain ungraded. Historical averages with unresolved veteran seasons are flagged as incomplete coverage.",
+  "candidateCoverage": "Players appearing in the historical window, plus explicit exceptions. This is not a complete inventory of veterans absent throughout the entire window.",
+  "sourceFingerprints": [
+    {
+      "path": "data/league-reference/availability-skaters.csv",
+      "algorithm": "sha256",
+      "hash": "8df1dbb5b46683a1707bbc72b6650d8dd2f6cae335056eb59bb107aafc113f8c",
+      "bytes": 331671
+    },
+    {
+      "path": "data/league-reference/availability-metadata.json",
+      "algorithm": "sha256",
+      "hash": "cf71b318302ca32b4404440132fe0f2c966e507beea10825d1556fb1c22e3765",
+      "bytes": 3764
+    }
+  ],
+  "outputCounts": {
+    "seasonRecords": 2923,
+    "eligibleSeasonGrades": 1286,
+    "historicalPlayers": 1196,
+    "ratedHistoricalPlayers": 530,
+    "incompleteHistoricalPlayers": 91
+  },
+  "note": "Measures regular-season participation regardless of absence reason. No overall-value contribution assigned."
+}

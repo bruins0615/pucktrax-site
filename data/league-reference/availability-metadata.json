@@ -1,0 +1,94 @@
+{
+  "collectedAt": "2026-10-24T01:18:07.042Z",
+  "modelVersion": "availability-v1-provisional",
+  "seasons": [
+    20232024,
+    20242025,
+    20252026
+  ],
+  "gameTypeId": 2,
+  "minimumCareerGames": 250,
+  "fullCreditGames": 82,
+  "sources": [
+    {
+      "season": 20232024,
+      "appearanceRows": 924,
+      "careerPlayers": 7565,
+      "careerThroughSeason": 20222023,
+      "careerSourceUrl": "https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=true&isGame=false&limit=-1&cayenneExp=seasonId%3E%3D19171918+and+seasonId%3C%3D20222023+and+gameTypeId%3D2"
+    },
+    {
+      "season": 20242025,
+      "appearanceRows": 920,
+      "careerPlayers": 7676,
+      "careerThroughSeason": 20232024,
+      "careerSourceUrl": "https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=true&isGame=false&limit=-1&cayenneExp=seasonId%3E%3D19171918+and+seasonId%3C%3D20232024+and+gameTypeId%3D2"
+    },
+    {
+      "season": 20252026,
+      "appearanceRows": 940,
+      "careerPlayers": 7783,
+      "careerThroughSeason": 20242025,
+      "careerSourceUrl": "https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=true&isGame=false&limit=-1&cayenneExp=seasonId%3E%3D19171918+and+seasonId%3C%3D20242025+and+gameTypeId%3D2"
+    }
+  ],
+  "exceptions": [
+    {
+      "playerId": 8476455,
+      "player": "Gabriel Landeskog",
+      "season": 20232024,
+      "position": "L",
+      "coverageStatus": "Verified zero",
+      "verificationSource": "https://www.nhl.com/avalanche/news/player-recap-gabriel-landeskog",
+      "note": "Missed the entire regular season during knee recovery."
+    },
+    {
+      "playerId": 8476455,
+      "player": "Gabriel Landeskog",
+      "season": 20242025,
+      "position": "L",
+      "coverageStatus": "Verified zero",
+      "verificationSource": "https://www.nhl.com/avalanche/news/player-recap-gabriel-landeskog",
+      "note": "Returned during the playoffs; had no regular-season appearances."
+    },
+    {
+      "playerId": 8475169,
+      "player": "Evander Kane",
+      "season": 20242025,
+      "position": "L",
+      "coverageStatus": "Verified zero",
+      "verificationSource": "https://www.nhl.com/news/evander-kane-out-rest-of-2024-2025-regular-season-for-edmonton",
+      "note": "Missed the entire regular season while recovering from surgery."
+    },
+    {
+      "playerId": 8477493,
+      "player": "Aleksander Barkov",
+      "season": 20252026,
+      "position": "C",
+      "coverageStatus": "Verified zero",
+      "verificationSource": "https://www.nhl.com/news/panthers-aleksander-barkov-placed-on-long-term-injured-reserve",
+      "note": "Missed the entire regular season because of a knee injury."
+    },
+    {
+      "playerId": 8470604,
+      "player": "Jeff Carter",
+      "season": 20242025,
+      "position": "C",
+      "coverageStatus": "Outside NHL involvement",
+      "verificationSource": "https://www.nhl.com/news/jeff-carter-retires-from-nhl",
+      "note": "Retired after the 2023-24 season; excluded from availability grading."
+    },
+    {
+      "playerId": 8470604,
+      "player": "Jeff Carter",
+      "season": 20252026,
+      "position": "C",
+      "coverageStatus": "Outside NHL involvement",
+      "verificationSource": "https://www.nhl.com/news/jeff-carter-retires-from-nhl",
+      "note": "Retired after the 2023-24 season; excluded from availability grading."
+    }
+  ],
+  "candidateCoverage": "Players appearing in the historical window, plus explicit exceptions. This is not a complete inventory of veterans absent throughout the entire window.",
+  "missingDataPolicy": "Absent veteran seasons remain unresolved unless documented. Retirement and overseas seasons are not automatically assigned zero.",
+  "scoring": "Reference collection only; grades are calculated separately."
+}

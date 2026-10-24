@@ -10,6 +10,7 @@
 - [Discipline Model v1](PuckTrax-discipline-model-v1.md): PIM/game foundation, positive drawing bonus, eligibility, historical grading, limitations, and implementation checklist.
 - [Faceoff Model v1](PuckTrax-faceoff-model-v1.md): provisional participation rules, special-teams qualification routes, data limitations, and open modeling decisions.
 - [Physicality Model v1](PuckTrax-physicality-model-v1.md): positive-only hits/game bonus, positional baselines, eligibility, cap, and implementation checklist.
+- [Veteran Season Participation](PuckTrax-availability-model-v1.md): career eligibility, fixed participation benchmark, zero-game coverage, and open scoring decisions.
 
 ## Historical reference
 
