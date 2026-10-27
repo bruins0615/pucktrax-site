@@ -1,0 +1,77 @@
+{
+  "modelVersion": "performance-v1-provisional",
+  "generatedAt": "2026-10-27T19:47:28.220Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "disciplineAdjustmentCoefficient": 0.025,
+  "coreWeights": {
+    "offense": 0.75,
+    "defense": 0.25
+  },
+  "formula": "historical Core index + discipline coefficient * historical Discipline index",
+  "inputModels": {
+    "core": "core-performance-v1-provisional",
+    "discipline": "discipline-v1-provisional"
+  },
+  "aggregation": "Historical Core and Discipline indices must cover identical eligible seasons and the same position.",
+  "comparisonGroup": "Same latest recorded NHL position; eligible matched histories.",
+  "percentileMethod": "Midpoint percentile for ties using unrounded Performance indices.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal.",
+  "missingDataPolicy": "Missing, mismatched and ineligible histories remain ungraded. Core results are preserved separately.",
+  "disciplinePolicy": "The Discipline index already includes the drawing bonus. It is not added a second time. PIM includes fighting and misconducts; this is not a power-play opportunity estimate.",
+  "excludedCategories": "No faceoff, physicality or availability contribution.",
+  "interpretation": "Provisional descriptive performance composite, not contract value, total season value delivered or projected ability.",
+  "reviewPlayers": [
+    "Jaccob Slavin",
+    "Cale Makar",
+    "David Pastrnak",
+    "Brad Marchand",
+    "Nikita Zadorov",
+    "Mark Kastelic",
+    "Connor McDavid",
+    "Sidney Crosby",
+    "Anthony Cirelli"
+  ],
+  "sourceFingerprints": [
+    {
+      "path": "data/core-performance-ratings/historical-core-performance-ratings.csv",
+      "algorithm": "sha256",
+      "hash": "7ed55a0ff55956727b3317a8cc3a607012b7e48aeb8cad0998bd665c1690e149",
+      "bytes": 265821
+    },
+    {
+      "path": "data/discipline-ratings/historical-discipline-ratings.csv",
+      "algorithm": "sha256",
+      "hash": "db0c90f76f9c2252008ac9f69b057c8f4a7a4b71c01f447180f5c52cd08b29e0",
+      "bytes": 206786
+    },
+    {
+      "path": "data/core-performance-ratings/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "ac7733a9eb4113f8545d77a1b920042b7a9dfbc6efefe5903a1d8ea8bd9387cf",
+      "bytes": 2963
+    },
+    {
+      "path": "data/discipline-ratings/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "dddf03acf6b2a645f80bb869a437a42b13f00d57759c7994bc92aadd0f34a155",
+      "bytes": 2202
+    }
+  ],
+  "outputCounts": {
+    "historicalPlayers": 1196,
+    "ratedPlayers": 864,
+    "positiveAdjustments": 565,
+    "negativeAdjustments": 299,
+    "zeroAdjustments": 0,
+    "reviewPlayers": 9,
+    "statusCounts": {
+      "Eligible": 864,
+      "No eligible matched history": 332
+    }
+  },
+  "note": "Review outputs only. Existing Core files and website grades are unchanged by this runner."
+}

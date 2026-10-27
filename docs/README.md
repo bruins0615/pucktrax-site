@@ -12,6 +12,7 @@
 - [Veteran Season Participation](PuckTrax-availability-model-v1.md): entering-season career eligibility, benchmark-based grading, historical averaging, coverage rules, implementation, and remaining decisions.
 - [Model checklist](model-checklist.md): project-wide implementation status, remaining coverage work, overall-value decisions, and later stages.
 - [Core Performance Model v1](PuckTrax-core-performance-model-v1.md): provisional 75/25 index combination, positional grading, fixed review sample, limitations, and implementation checklist.
+- [Performance Model v1](PuckTrax-performance-model-v1.md): provisional Core plus Discipline adjustment, historical matching, grading, limitations, and implementation checklist.
 
 ## Historical reference
 
@@ -31,8 +32,9 @@ not assumed to carry the same importance as core categories.
 
 Core performance provisionally combines 75% offensive index and 25%
 defensive index before positional percentile grading. This composite
-is not yet implemented. Auxiliary contributions and the overall-value
-formula remain undecided.
+is implemented provisionally, with directory sorting, history filters
+and player-profile explanations. Auxiliary contributions and the
+overall-value formula remain undecided.
 
 Faceoff participation must be considered before assigning a rating;
 players without that responsibility should not receive a poor score
@@ -71,3 +73,9 @@ seasons equally. Verified zero-game seasons count as zero; documented
 outside-NHL seasons are excluded. Unresolved coverage remains ungraded
 and is explicitly flagged. The Availability tab displays historical
 coverage and season-level explanations. Coverage review remains open.
+
+The provisional Performance calculation adds 0.025 times the historical
+Discipline index to Core, then recalculates positional percentile grades.
+Historical coverage must match. Results, review examples and input
+fingerprints are saved separately. The website continues to display
+Core while remaining auxiliary contributions are considered.

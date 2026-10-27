@@ -70,5 +70,8 @@ module.exports = Object.freeze({
     corePerformanceWeights: Object.freeze({
         offense: 0.75,
         defense: 0.25
-    })
+    }),
+
+    performanceModelVersion: "performance-v1-provisional",
+    disciplineAdjustmentCoefficient: 0.025
 });

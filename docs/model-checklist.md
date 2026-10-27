@@ -10,6 +10,11 @@ as a measure of player value.
 - [x] Implement defensive season and historical ratings.
 - [x] Display grades, season histories, sample eligibility and comparisons.
 - [x] Add offensive and defensive directory filtering and sorting.
+- [x] Implement and test the provisional 75/25 historical Core composite.
+- [x] Save Core results, fixed review sample and source fingerprints.
+- [x] Perform initial sensitivity, distribution and calculation checks.
+- [x] Display Core grades with qualifying-history context.
+- [x] Add core sorting and independent history/recency directory filters.
 
 ## Auxiliary categories
 
@@ -19,6 +24,8 @@ as a measure of player value.
 - [x] Implement capped positive-only Physicality season bonuses and tab.
 - [x] Implement veteran Availability collection, grades and tab.
 - [x] Distinguish verified zero, unresolved and excluded availability seasons.
+- [x] Implement and verify the provisional 0.025 Discipline adjustment
+      to the Performance index, preserving Core separately.
 
 ## Remaining category work
 

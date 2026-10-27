@@ -138,16 +138,49 @@ to obtain preferred ratings for individual players.
 Document concerns before revising the formula. Any revision requires
 a stated rationale and a new review of all affected players.
 
+## Saved implementation
+
+Runner:
+`scripts/models/calculate-core-performance-ratings.js`
+
+Outputs:
+- `data/core-performance-ratings/historical-core-performance-ratings.csv`
+- `data/core-performance-ratings/core-performance-review.csv`
+- `data/core-performance-ratings/model-metadata.json`
+
+Outputs preserve underlying indices, weighted contributions, historical
+coverage, positional percentiles and grades. Metadata records settings
+and SHA-256 fingerprints of the input files.
+
+The directory displays Core prominently, with smaller offensive and
+defensive grades. An information control explains the calculation
+and qualifying history.
+
+Directory controls include core-grade sorting, minimum qualifying
+seasons and latest-completed-season qualification. Filters change
+displayed results only, not saved grades or comparison pools.
+
+Player profiles display the historical Core grade, qualifying-season
+count, qualifying five-on-five minutes, included seasons and an
+expandable calculation explanation.
+
+Qualifying grades remain intact without sample-size adjustment.
+Shorter histories remain visible and can be filtered from the directory.
+
 ## Implementation checklist
 
 - [x] Choose underlying indices instead of averaging category grades.
 - [x] Choose provisional 75/25 offense/defense coefficients.
 - [x] Define the initial review sample and interpretation.
-- [ ] Add configuration settings.
-- [ ] Implement calculation and historical-coverage checks.
-- [ ] Add automated calculation and missingness tests.
-- [ ] Save trial outputs and source fingerprints.
-- [ ] Review the fixed sample and full eligible distribution.
-- [ ] Decide whether the composite is ready for player-profile display.
+- [x] Add configuration settings.
+- [x] Implement calculation and historical-coverage checks.
+- [x] Add automated calculation and missingness tests.
+- [x] Save trial outputs and source fingerprints.
+- [x] Perform an initial fixed-sample and full-distribution review.
+- [x] Verify saved contributions, percentiles and missingness.
+- [x] Add directory grades, sorting and history controls.
+- [x] Display the provisional composite on player profiles.
+- [x] Review desktop and phone behavior.
+- [ ] Continue evaluating component validity and sample limitations.
 - [ ] Decide auxiliary contributions separately.
 - [ ] Decide availability and contract-value treatment separately.
