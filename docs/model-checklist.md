@@ -30,7 +30,8 @@ as a measure of player value.
 ## Overall player value
 
 - [ ] Define what the overall score represents.
-- [ ] Decide how offense and defense contribute to the core score.
+- [x] Decide how offense and defense contribute to the core score:
+      provisional 75/25 combination of underlying indices.
 - [ ] Decide how each auxiliary category contributes.
 - [ ] Handle ineligible and not-applicable categories without treating
       missing grades as zero.

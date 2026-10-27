@@ -5,7 +5,7 @@ import { getPlayerDirectory } from "../../lib/player-data";
 
 export const metadata = {
     title: "Find a player | PuckTrax",
-    description: "Explore historical NHL skater offensive and defensive profiles."
+    description: "Explore historical NHL skater profiles with core performance, offensive and defensive ratings."
 };
 
 export default function PlayersPage() {
@@ -35,16 +35,18 @@ export default function PlayersPage() {
                 <h1 className="text-3xl font-bold">Find a player</h1>
 
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-400">
-                    Explore historical offensive profiles for NHL skaters.
+                    Explore historical NHL skater profiles with core
+                    performance, offensive and defensive ratings.
                     {window ? ` Historical window: ${window}.` : ""}
-                    {" "}This directory includes players recorded in that
-                    window, rather than a verified current-roster list.
+                    {" "}Players shown appeared during that window;
+                    this is not a verified current-roster list.
                 </p>
 
                 <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                    Ratings compare positional peers and describe offense
-                    and defense separately, not overall player value.
-                    Unrated indicates no eligible history for that category.
+                    Ratings compare positional peers. Core performance is
+                    a provisional combination of offensive and defensive
+                    indices, separate from availability and contract value.
+                    Unrated means no eligible result is available.
                 </p>
 
                 <div className="mt-8">

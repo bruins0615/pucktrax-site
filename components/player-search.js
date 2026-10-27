@@ -79,6 +79,8 @@ export default function PlayerSearch({ players }) {
     const [ratingFilter, setRatingFilter] = useState("");
     const [defenseFilter, setDefenseFilter] = useState("");
     const [historyFilter, setHistoryFilter] = useState("");
+    const [coreHistoryFilter, setCoreHistoryFilter] = useState("");
+    const [recentCoreFilter, setRecentCoreFilter] = useState("");
     const [sort, setSort] = useState("name");
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const [teamSeason, setTeamSeason] = useState(
@@ -106,6 +108,8 @@ export default function PlayerSearch({ players }) {
         setRatingFilter("");
         setDefenseFilter("");
         setHistoryFilter("");
+        setCoreHistoryFilter("");
+        setRecentCoreFilter("");
         setSort("name");
         setVisibleCount(PAGE_SIZE);
         setTeam("");
@@ -160,6 +164,19 @@ export default function PlayerSearch({ players }) {
         ) {
             return false;
         }
+        if (
+            coreHistoryFilter !== "" &&
+            Number(player.coreEligibleSeasons) < Number(coreHistoryFilter)
+        ) {
+            return false;
+        }
+
+        if (
+            recentCoreFilter === "qualified" &&
+            !player.coreLatestSeasonQualified
+        ) {
+            return false;
+        }
 
         return true;
     });
@@ -173,9 +190,11 @@ export default function PlayerSearch({ players }) {
         if (sort === "name") return byName;
         if (sort === "name-desc") return -byName;
 
-        const ratingField = sort.startsWith("defense-")
-            ? "defenseRating"
-            : "offenseRating";
+        const ratingField = sort.startsWith("core-")
+            ? "corePerformanceRating"
+            : sort.startsWith("defense-")
+                ? "defenseRating"
+                : "offenseRating";
 
         const first = ratingOf(a, ratingField);
         const second = ratingOf(b, ratingField);
@@ -187,7 +206,9 @@ export default function PlayerSearch({ players }) {
 
         return (
             (
-                sort === "rating-high" || sort === "defense-high"
+                sort === "rating-high" ||
+                    sort === "defense-high" ||
+                    sort === "core-high"
                     ? second - first
                     : first - second
             ) || byName
@@ -201,6 +222,8 @@ export default function PlayerSearch({ players }) {
         ratingFilter ||
         defenseFilter ||
         historyFilter ||
+        coreHistoryFilter ||
+        recentCoreFilter ||
         team ||
         teamSeason !== (teamSeasons[0] ?? "") ||
         sort !== "name";
@@ -291,7 +314,7 @@ export default function PlayerSearch({ players }) {
 
                 <SelectControl
                     id={`${id}-history`}
-                    label="Eligible seasons"
+                    label="Offensive eligible seasons"
                     value={historyFilter}
                     onChange={(value) => update(setHistoryFilter, value)}
                     options={[
@@ -300,6 +323,28 @@ export default function PlayerSearch({ players }) {
                         ["1", "1 season"],
                         ["2", "2 seasons"],
                         ["3", "3 seasons"]
+                    ]}
+                />
+                <SelectControl
+                    id={`${id}-core-history`}
+                    label="Minimum qualifying core history"
+                    value={coreHistoryFilter}
+                    onChange={(value) => update(setCoreHistoryFilter, value)}
+                    options={[
+                        ["", "Any history"],
+                        ["2", "2+ qualifying seasons"],
+                        ["3", "3 qualifying seasons"]
+                    ]}
+                />
+
+                <SelectControl
+                    id={`${id}-core-recent`}
+                    label="Latest completed season — core"
+                    value={recentCoreFilter}
+                    onChange={(value) => update(setRecentCoreFilter, value)}
+                    options={[
+                        ["", "No restriction"],
+                        ["qualified", "Qualified in latest completed season"]
                     ]}
                 />
 
@@ -311,6 +356,8 @@ export default function PlayerSearch({ players }) {
                     options={[
                         ["name", "Name A–Z"],
                         ["name-desc", "Name Z–A"],
+                        ["core-high", "Highest core performance"],
+                        ["core-low", "Lowest core performance"],
                         ["rating-high", "Highest offense"],
                         ["rating-low", "Lowest offense"],
                         ["defense-high", "Highest defense"],
@@ -324,6 +371,15 @@ export default function PlayerSearch({ players }) {
                 Ratings remain historical. Traded players match every
                 recorded team in the selected season; their profiles
                 show combined full-season performance.
+            </p>
+
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+                Provisional core performance combines 75% offensive index
+                and 25% defensive index before positional percentile grading.
+                Core history filters affect the displayed list only.
+                Latest-season qualification refers to the historical
+                window&apos;s final completed season, not the live season
+                or the selected team-affiliation season.
             </p>
 
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
@@ -359,73 +415,163 @@ export default function PlayerSearch({ players }) {
                     {visiblePlayers.map((player) => {
                         const rating = ratingOf(player);
                         const defense = ratingOf(player, "defenseRating");
+                        const core = ratingOf(
+                            player,
+                            "corePerformanceRating"
+                        );
+
+                        const coreSeasons = Number(player.coreEligibleSeasons);
+
+                        const coreMinutes =
+                            player.coreMinutes5v5 == null ||
+                                String(player.coreMinutes5v5).trim() === ""
+                                ? null
+                                : Number(player.coreMinutes5v5);
 
                         return (
-                            <li key={player.playerId}>
-                                <Link
-                                    href={`/players/${player.playerId}`}
-                                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-xl border border-slate-700 bg-[#101d32] p-4 transition-colors hover:border-sky-400/60 hover:bg-[#15253d] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-400"
-                                >
-                                    <div>
-                                        <h2 className="text-base font-semibold text-white">
+                            <li
+                                key={player.playerId}
+                                className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-xl border border-slate-700 bg-[#101d32] p-4 transition-colors hover:border-sky-400/60 hover:bg-[#15253d] focus-within:border-sky-400"
+                            >
+                                <div className="min-w-0">
+                                    <h2 className="text-base font-semibold text-white">
+                                        <Link
+                                            href={`/players/${player.playerId}`}
+                                            className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sky-400"
+                                        >
                                             {player.player}
-                                        </h2>
+                                        </Link>
+                                    </h2>
 
-                                        <p className="mt-1 text-sm text-slate-400">
-                                            {POSITIONS[player.position] ?? player.position}
+                                    <p className="mt-1 text-sm text-slate-400">
+                                        {POSITIONS[player.position] ?? player.position}
+                                    </p>
+
+                                    <p className="mt-1 text-xs text-slate-400">
+                                        {teamSeason
+                                            ? `${teamSeason.slice(0, 4)}–${teamSeason.slice(6, 8)}: `
+                                            : ""}
+                                        {(player.teamsBySeason?.[teamSeason] ?? [])
+                                            .join(" · ") || "No recorded affiliation"}
+                                    </p>
+                                </div>
+
+                                <div className="text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                        <p className="text-[11px] font-medium uppercase tracking-wide text-white">
+                                            Core
                                         </p>
 
-                                        <p className="mt-1 text-xs text-slate-400">
-                                            {teamSeason
-                                                ? `${teamSeason.slice(0, 4)}–${teamSeason.slice(6, 8)}: `
-                                                : ""}
-                                            {(player.teamsBySeason?.[teamSeason] ?? []).join(" · ") ||
-                                                "No recorded affiliation"}
-                                        </p>
-                                    </div>
+                                        <details className="relative z-20 text-left">
+                                            <summary
+                                                aria-label={`About ${player.player}'s core performance grade`}
+                                                className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-slate-400 hover:text-sky-300 focus-visible:outline-2 focus-visible:outline-sky-400 [&::-webkit-details-marker]:hidden"
+                                            >
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="flex h-5 w-5 items-center justify-center rounded-full border border-current text-xs font-semibold"
+                                                >
+                                                    i
+                                                </span>
+                                            </summary>
 
-                                    <div className="text-right">
-                                        <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                                            Historical ratings
-                                        </p>
+                                            <div className="absolute right-0 top-full mt-1 w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-slate-600 bg-[#14243b] p-4 text-xs leading-relaxed text-slate-300 shadow-xl">
+                                                <p className="font-semibold text-white">
+                                                    Provisional core performance
+                                                </p>
 
-                                        <dl className="mt-2 grid gap-3 sm:grid-cols-2 sm:gap-5">
-                                            <div>
-                                                <dt className="text-xs text-slate-400">
-                                                    Offense
-                                                </dt>
-                                                <dd className="mt-1 text-xl font-bold text-sky-300 tabular-nums">
-                                                    {rating === null
-                                                        ? "Unrated"
-                                                        : `${rating.toFixed(1)} / 10`}
-                                                </dd>
-                                                <dd className="mt-1 text-xs text-slate-400">
-                                                    {player.eligibleSeasons} eligible{" "}
-                                                    {Number(player.eligibleSeasons) === 1
+                                                <p className="mt-3">
+                                                    Combines 75% offensive index
+                                                    and 25% defensive index,
+                                                    then grades the result
+                                                    against positional peers.
+                                                    Category grades are not
+                                                    averaged.
+                                                </p>
+
+                                                <p className="mt-3">
+                                                    {coreSeasons} qualifying{" "}
+                                                    {coreSeasons === 1
                                                         ? "season"
                                                         : "seasons"}
-                                                </dd>
-                                            </div>
+                                                    {Number.isFinite(coreMinutes)
+                                                        ? ` · ≈${coreMinutes.toLocaleString(
+                                                            "en-US",
+                                                            { maximumFractionDigits: 0 }
+                                                        )} qualifying 5v5 minutes`
+                                                        : ""}
+                                                </p>
 
-                                            <div>
-                                                <dt className="text-xs text-slate-400">
-                                                    Defense
-                                                </dt>
-                                                <dd className="mt-1 text-xl font-bold text-sky-300 tabular-nums">
-                                                    {defense === null
-                                                        ? "Unrated"
-                                                        : `${defense.toFixed(1)} / 10`}
-                                                </dd>
-                                                <dd className="mt-1 text-xs text-slate-400">
-                                                    {player.defensiveEligibleSeasons} eligible{" "}
-                                                    {Number(player.defensiveEligibleSeasons) === 1
-                                                        ? "season"
-                                                        : "seasons"}
-                                                </dd>
+                                                {core !== null && (
+                                                    <p className="mt-2">
+                                                        Based on{" "}
+                                                        {player.coreIncludedSeasons
+                                                            .split(",")
+                                                            .map((season) =>
+                                                                `${season.slice(0, 4)}–${season.slice(6, 8)}`
+                                                            )
+                                                            .join(", ")}
+                                                    </p>
+                                                )}
+
+                                                <p className="mt-3">
+                                                    {core === null
+                                                        ? "No matched eligible history is available for a combined grade."
+                                                        : "Shorter histories provide less evidence of sustained performance."}
+                                                </p>
+
+                                                <p className="mt-3">
+                                                    Availability and auxiliary
+                                                    categories are not included.
+                                                    This is not a contract-value
+                                                    or projected-ability grade.
+                                                </p>
                                             </div>
-                                        </dl>
+                                        </details>
                                     </div>
-                                </Link>
+
+                                    <p className="text-[36px] font-bold leading-none text-sky-300 tabular-nums">
+                                        {core === null ? (
+                                            <span className="text-xl">Unrated</span>
+                                        ) : (
+                                            <>
+                                                {core.toFixed(1)}
+                                                <span className="ml-1 text-xs font-normal text-slate-400">
+                                                    / 10
+                                                </span>
+                                            </>
+                                        )}
+                                    </p>
+
+                                    <p className="mt-2 text-[11px] text-slate-400">
+                                        {coreSeasons} qualifying{" "}
+                                        {coreSeasons === 1 ? "season" : "seasons"}
+                                    </p>
+
+                                    <dl className="mt-3 flex justify-end gap-4 border-t border-slate-700 pt-3">
+                                        <div className="min-w-16 text-center">
+                                            <dt className="text-[11px] text-slate-400">
+                                                Offense
+                                            </dt>
+                                            <dd className="mt-1 text-base font-semibold text-slate-200 tabular-nums">
+                                                {rating === null
+                                                    ? "—"
+                                                    : rating.toFixed(1)}
+                                            </dd>
+                                        </div>
+
+                                        <div className="min-w-16 text-center">
+                                            <dt className="text-[11px] text-slate-400">
+                                                Defense
+                                            </dt>
+                                            <dd className="mt-1 text-base font-semibold text-slate-200 tabular-nums">
+                                                {defense === null
+                                                    ? "—"
+                                                    : defense.toFixed(1)}
+                                            </dd>
+                                        </div>
+                                    </dl>
+                                </div>
                             </li>
                         );
                     })}

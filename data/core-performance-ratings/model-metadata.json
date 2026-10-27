@@ -1,0 +1,88 @@
+{
+  "modelVersion": "core-performance-v1-provisional",
+  "generatedAt": "2026-10-27T17:40:50.050Z",
+  "historicalSeasons": [
+    "20232024",
+    "20242025",
+    "20252026"
+  ],
+  "weights": {
+    "offense": 0.75,
+    "defense": 0.25
+  },
+  "formula": "offense weight * historical offensive index + defense weight * historical defensive index",
+  "inputModels": {
+    "offense": "offense-v1-provisional",
+    "defense": "defense-v1-provisional"
+  },
+  "aggregation": "Combines historical indices covering identical eligible seasons.",
+  "scaling": "Existing index scales; no additional standardization.",
+  "comparisonGroup": "Same latest recorded NHL position; eligible matched histories.",
+  "percentileMethod": "Midpoint percentile for ties using unrounded core indices.",
+  "ratingMethod": "Percentile divided by 10, rounded to one decimal.",
+  "missingDataPolicy": "Missing, mismatched and ineligible histories remain ungraded. Missing category weights are not redistributed.",
+  "exclusions": "No discipline, faceoff, physicality or availability contribution.",
+  "interpretation": "Provisional positional performance composite, not goals or wins contributed, contract value or projected ability.",
+  "limitations": "Component scales differ. Defensive inputs retain team and deployment effects. Review sample is diagnostic, not independent validation.",
+  "reviewPlayers": [
+    "Connor McDavid",
+    "Nathan MacKinnon",
+    "Nikita Kucherov",
+    "Cale Makar",
+    "Leon Draisaitl",
+    "David Pastrnak",
+    "Quinn Hughes",
+    "Jack Eichel",
+    "Adam Fox",
+    "Aleksander Barkov",
+    "Anthony Cirelli",
+    "Jaccob Slavin",
+    "Anze Kopitar",
+    "Sidney Crosby",
+    "Connor Bedard",
+    "Mark Jankowski",
+    "Jackson Blake",
+    "Jesper Fast",
+    "Pierre-Edouard Bellemare",
+    "Dominic James",
+    "Brock Boeser",
+    "Trent Frederic",
+    "Jake Evans",
+    "John Leonard"
+  ],
+  "sourceFingerprints": [
+    {
+      "path": "data/offensive-ratings/historical-offensive-ratings.csv",
+      "algorithm": "sha256",
+      "hash": "f8742ffe564b5d08649a39c258b7a053fcefc6695f914475dfff0995a0185ff7",
+      "bytes": 209700
+    },
+    {
+      "path": "data/defensive-ratings/historical-defensive-ratings.csv",
+      "algorithm": "sha256",
+      "hash": "7d6a1a4151ddad7d9eb27fe297e5224d0a61663665f77629ddde87d7ec39f27d",
+      "bytes": 231368
+    },
+    {
+      "path": "data/offensive-ratings/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "92abc8974420abcc2960fcbc9c81914ac2878bd91ace340586b4cc46adffa903",
+      "bytes": 2239
+    },
+    {
+      "path": "data/defensive-ratings/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "a258954a3c3291e7dc059055ca3d3c3a31e487a366db7a48ce0d95ed811c4026",
+      "bytes": 2483
+    }
+  ],
+  "outputCounts": {
+    "historicalPlayers": 1196,
+    "ratedPlayers": 864,
+    "reviewPlayers": 24,
+    "statusCounts": {
+      "Eligible": 864,
+      "No eligible history": 332
+    }
+  }
+}

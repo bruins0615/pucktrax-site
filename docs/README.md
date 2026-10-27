@@ -11,6 +11,7 @@
 - [Physicality Model v1](PuckTrax-physicality-model-v1.md): positive-only hits/game bonus, positional baselines, eligibility, cap, and implementation checklist.
 - [Veteran Season Participation](PuckTrax-availability-model-v1.md): entering-season career eligibility, benchmark-based grading, historical averaging, coverage rules, implementation, and remaining decisions.
 - [Model checklist](model-checklist.md): project-wide implementation status, remaining coverage work, overall-value decisions, and later stages.
+- [Core Performance Model v1](PuckTrax-core-performance-model-v1.md): provisional 75/25 index combination, positional grading, fixed review sample, limitations, and implementation checklist.
 
 ## Historical reference
 
@@ -28,9 +29,14 @@ Auxiliary categories: discipline, faceoffs, physicality, and veteran
 availability. Their overall contributions remain undecided and are
 not assumed to carry the same importance as core categories.
 
-Overall weights remain undecided. Faceoff participation must be considered
-before assigning a rating; players without that responsibility should
-not receive a poor score for lacking opportunities.
+Core performance provisionally combines 75% offensive index and 25%
+defensive index before positional percentile grading. This composite
+is not yet implemented. Auxiliary contributions and the overall-value
+formula remain undecided.
+
+Faceoff participation must be considered before assigning a rating;
+players without that responsibility should not receive a poor score
+for lacking opportunities.
 
 Additional directory filters are deferred until the auxiliary category
 structure is established.

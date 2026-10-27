@@ -63,5 +63,12 @@ module.exports = Object.freeze({
 
     availabilityModelVersion: "availability-v1-provisional",
     minimumCareerGamesForAvailability: 250,
-    availabilityFullCreditGames: 82
+    availabilityFullCreditGames: 82,
+
+    corePerformanceModelVersion: "core-performance-v1-provisional",
+
+    corePerformanceWeights: Object.freeze({
+        offense: 0.75,
+        defense: 0.25
+    })
 });
