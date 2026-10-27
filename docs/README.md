@@ -74,8 +74,10 @@ outside-NHL seasons are excluded. Unresolved coverage remains ungraded
 and is explicitly flagged. The Availability tab displays historical
 coverage and season-level explanations. Coverage review remains open.
 
-The provisional Performance calculation adds 0.025 times the historical
-Discipline index to Core, then recalculates positional percentile grades.
-Historical coverage must match. Results, review examples and input
-fingerprints are saved separately. The website continues to display
-Core while remaining auxiliary contributions are considered.
+Performance v2 combines Core with a 0.025 historical Discipline
+adjustment and signed 0.025 season-level Faceoff adjustments averaged
+across qualifying Core seasons. Faceoff support counts and included
+seasons are preserved. Missing records fail validation; documented
+nonqualifying seasons receive no adjustment. Results, review examples
+and input fingerprints are saved separately. The website continues
+to display Core while Physicality and final presentation are considered.

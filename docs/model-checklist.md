@@ -26,6 +26,8 @@ as a measure of player value.
 - [x] Distinguish verified zero, unresolved and excluded availability seasons.
 - [x] Implement and verify the provisional 0.025 Discipline adjustment
       to the Performance index, preserving Core separately.
+- [x] Implement and verify signed 0.025 Faceoff adjustments, averaged
+      across qualifying Core seasons with explicit support counts.
 
 ## Remaining category work
 

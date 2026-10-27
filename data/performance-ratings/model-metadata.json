@@ -1,20 +1,22 @@
 {
-  "modelVersion": "performance-v1-provisional",
-  "generatedAt": "2026-10-27T19:47:28.220Z",
+  "modelVersion": "performance-v2-provisional",
+  "generatedAt": "2026-10-27T20:38:44.737Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
     "20252026"
   ],
   "disciplineAdjustmentCoefficient": 0.025,
+  "faceoffAdjustmentCoefficient": 0.025,
   "coreWeights": {
     "offense": 0.75,
     "defense": 0.25
   },
-  "formula": "historical Core index + discipline coefficient * historical Discipline index",
+  "formula": "historical Core index + discipline coefficient * historical Discipline index + historical Faceoff adjustment",
   "inputModels": {
     "core": "core-performance-v1-provisional",
-    "discipline": "discipline-v1-provisional"
+    "discipline": "discipline-v1-provisional",
+    "faceoffs": "faceoffs-v1-provisional"
   },
   "aggregation": "Historical Core and Discipline indices must cover identical eligible seasons and the same position.",
   "comparisonGroup": "Same latest recorded NHL position; eligible matched histories.",
@@ -22,7 +24,8 @@
   "ratingMethod": "Percentile divided by 10, rounded to one decimal.",
   "missingDataPolicy": "Missing, mismatched and ineligible histories remain ungraded. Core results are preserved separately.",
   "disciplinePolicy": "The Discipline index already includes the drawing bonus. It is not added a second time. PIM includes fighting and misconducts; this is not a power-play opportunity estimate.",
-  "excludedCategories": "No faceoff, physicality or availability contribution.",
+  "faceoffPolicy": "Apply signed adjustments in qualifying Faceoff seasons included in Core history. Divide their sum by all qualifying Core seasons. Documented nonqualifying seasons receive no adjustment; missing records fail.",
+  "excludedCategories": "No physicality or availability contribution.",
   "interpretation": "Provisional descriptive performance composite, not contract value, total season value delivered or projected ability.",
   "reviewPlayers": [
     "Jaccob Slavin",
@@ -33,7 +36,14 @@
     "Mark Kastelic",
     "Connor McDavid",
     "Sidney Crosby",
-    "Anthony Cirelli"
+    "Anthony Cirelli",
+    "Claude Giroux",
+    "Jordan Staal",
+    "Elias Lindholm",
+    "Pavel Zacha",
+    "Leo Carlsson",
+    "Connor Bedard",
+    "Logan Cooley"
   ],
   "sourceFingerprints": [
     {
@@ -47,6 +57,18 @@
       "algorithm": "sha256",
       "hash": "db0c90f76f9c2252008ac9f69b057c8f4a7a4b71c01f447180f5c52cd08b29e0",
       "bytes": 206786
+    },
+    {
+      "path": "data/faceoff-ratings/season-faceoff-indices.csv",
+      "algorithm": "sha256",
+      "hash": "ced031b7cc7ae56f6b666e17159ee41d6a97cc907701755e77d5cb9a6be72f54",
+      "bytes": 322434
+    },
+    {
+      "path": "data/faceoff-ratings/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "82f83bec4bc085714e740c2c3e689bd57bdc6fd9a5016a45ae079c2d6a609b68",
+      "bytes": 2696
     },
     {
       "path": "data/core-performance-ratings/model-metadata.json",
@@ -67,7 +89,8 @@
     "positiveAdjustments": 565,
     "negativeAdjustments": 299,
     "zeroAdjustments": 0,
-    "reviewPlayers": 9,
+    "playersWithFaceoffSupport": 167,
+    "reviewPlayers": 16,
     "statusCounts": {
       "Eligible": 864,
       "No eligible matched history": 332

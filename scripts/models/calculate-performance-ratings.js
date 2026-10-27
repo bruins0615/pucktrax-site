@@ -236,6 +236,14 @@ function main() {
         "data/discipline-ratings/historical-discipline-ratings.csv"
     );
 
+    const faceoffRows = readCsv(
+        "data/faceoff-ratings/season-faceoff-indices.csv"
+    );
+
+    const faceoffMetadata = JSON.parse(readSource(
+        "data/faceoff-ratings/model-metadata.json"
+    ));
+
     const coreMetadata = JSON.parse(readSource(
         "data/core-performance-ratings/model-metadata.json"
     ));
@@ -249,7 +257,8 @@ function main() {
 
     for (const [label, metadata, expectedVersion] of [
         ["Core", coreMetadata, MODEL_CONFIG.corePerformanceModelVersion],
-        ["Discipline", disciplineMetadata, MODEL_CONFIG.disciplineModelVersion]
+        ["Discipline", disciplineMetadata, MODEL_CONFIG.disciplineModelVersion],
+        ["Faceoffs", faceoffMetadata, MODEL_CONFIG.faceoffModelVersion]
     ]) {
         if (
             metadata.modelVersion !== expectedVersion ||
@@ -274,9 +283,14 @@ function main() {
         );
     }
 
-    const results = buildPerformanceHistoricalScores(
+    const disciplineResults = buildPerformanceHistoricalScores(
         coreRows,
         disciplineRows
+    );
+
+    const results = applyHistoricalFaceoffAdjustments(
+        disciplineResults,
+        faceoffRows
     ).sort((a, b) => Number(a.playerId) - Number(b.playerId));
 
     const reviewNames = [
@@ -288,7 +302,14 @@ function main() {
         "Mark Kastelic",
         "Connor McDavid",
         "Sidney Crosby",
-        "Anthony Cirelli"
+        "Anthony Cirelli",
+        "Claude Giroux",
+        "Jordan Staal",
+        "Elias Lindholm",
+        "Pavel Zacha",
+        "Leo Carlsson",
+        "Connor Bedard",
+        "Logan Cooley"
     ];
 
     const review = reviewNames.map((name) => {
@@ -336,13 +357,16 @@ function main() {
             historicalSeasons: configuredSeasons,
             disciplineAdjustmentCoefficient:
                 MODEL_CONFIG.disciplineAdjustmentCoefficient,
+            faceoffAdjustmentCoefficient:
+                MODEL_CONFIG.faceoffAdjustmentCoefficient,
             coreWeights: savedWeights,
             formula:
                 "historical Core index + discipline coefficient * " +
-                "historical Discipline index",
+                "historical Discipline index + historical Faceoff adjustment",
             inputModels: {
                 core: coreMetadata.modelVersion,
-                discipline: disciplineMetadata.modelVersion
+                discipline: disciplineMetadata.modelVersion,
+                faceoffs: faceoffMetadata.modelVersion
             },
             aggregation:
                 "Historical Core and Discipline indices must cover " +
@@ -360,8 +384,13 @@ function main() {
                 "The Discipline index already includes the drawing bonus. " +
                 "It is not added a second time. PIM includes fighting and " +
                 "misconducts; this is not a power-play opportunity estimate.",
+            faceoffPolicy:
+                "Apply signed adjustments in qualifying Faceoff seasons " +
+                "included in Core history. Divide their sum by all " +
+                "qualifying Core seasons. Documented nonqualifying " +
+                "seasons receive no adjustment; missing records fail.",
             excludedCategories:
-                "No faceoff, physicality or availability contribution.",
+                "No physicality or availability contribution.",
             interpretation:
                 "Provisional descriptive performance composite, not contract " +
                 "value, total season value delivered or projected ability.",
@@ -378,6 +407,9 @@ function main() {
                 ).length,
                 zeroAdjustments: eligible.filter(
                     (record) => record.disciplineAdjustment === 0
+                ).length,
+                playersWithFaceoffSupport: eligible.filter(
+                    (record) => record.faceoffSupportedSeasons > 0
                 ).length,
                 reviewPlayers: review.length,
                 statusCounts
@@ -397,12 +429,18 @@ function main() {
     console.table(
         review.map((record) => ({
             player: record.player,
-            seasons: record.eligibleSeasons,
-            coreIndex: display(record.corePerformanceIndex),
-            disciplineIndex: display(record.disciplineIndex),
-            adjustment: display(record.disciplineAdjustment),
+            support:
+                record.performanceIndex === null
+                    ? "—"
+                    : `${record.faceoffSupportedSeasons}/${record.eligibleSeasons}`,
+            discipline: display(record.disciplineAdjustment),
+            faceoffs: display(record.faceoffAdjustment),
             performanceIndex: display(record.performanceIndex),
             coreGrade: display(record.corePerformanceRating, 1),
+            beforeFaceoffs: display(
+                record.performanceBeforeFaceoffsRating,
+                1
+            ),
             performanceGrade: display(record.performanceRating, 1),
             status: record.historyStatus
         }))
@@ -426,7 +464,164 @@ if (require.main === module) {
     }
 }
 
+function calculateHistoricalFaceoffAdjustment(coreRecord, faceoffRows) {
+    const coefficient = MODEL_CONFIG.faceoffAdjustmentCoefficient;
+
+    if (!Number.isFinite(coefficient) || coefficient < 0) {
+        throw new Error(
+            "Faceoff adjustment coefficient must be nonnegative"
+        );
+    }
+
+    const configuredSeasons =
+        MODEL_CONFIG.historicalSeasons.map(String);
+
+    const coreSeasons = String(coreRecord.includedSeasons ?? "")
+        .split(",")
+        .map((season) => season.trim())
+        .filter(Boolean)
+        .sort();
+
+    const count = requireNumber(
+        coreRecord.eligibleSeasons,
+        "Core eligible seasons for Faceoff adjustment"
+    );
+
+    if (
+        !Number.isInteger(count) ||
+        count <= 0 ||
+        count !== coreSeasons.length ||
+        new Set(coreSeasons).size !== coreSeasons.length ||
+        coreSeasons.some(
+            (season) => !configuredSeasons.includes(season)
+        )
+    ) {
+        throw new Error("Invalid Core coverage for Faceoff adjustment");
+    }
+
+    const playerId = String(coreRecord.playerId);
+    const bySeason = new Map();
+
+    for (const row of faceoffRows) {
+        if (String(row.playerId) !== playerId) continue;
+
+        const season = String(row.season);
+
+        if (!coreSeasons.includes(season)) continue;
+
+        if (bySeason.has(season)) {
+            throw new Error(
+                `Duplicate faceoff record: ${playerId}-${season}`
+            );
+        }
+
+        bySeason.set(season, row);
+    }
+
+    const supportedSeasons = [];
+    let adjustmentSum = 0;
+
+    for (const season of coreSeasons) {
+        const record = bySeason.get(season);
+        const identity = `${playerId}-${season}`;
+
+        if (!record) {
+            throw new Error(`Missing faceoff record: ${identity}`);
+        }
+
+        const validStatuses = [
+            "Eligible",
+            "Limited sample",
+            "Incomplete zone sample",
+            "Not applicable"
+        ];
+
+        if (!validStatuses.includes(record.sampleStatus)) {
+            throw new Error(`Invalid faceoff status: ${identity}`);
+        }
+
+        if (record.faceoffIndex === undefined) {
+            throw new Error(`Missing faceoff index field: ${identity}`);
+        }
+
+        const value = record.faceoffIndex;
+        const missing =
+            value === null ||
+            (typeof value === "string" && value.trim() === "");
+
+        if (record.sampleStatus !== "Eligible") {
+            if (!missing) {
+                throw new Error(
+                    `Ungraded faceoff season has an index: ${identity}`
+                );
+            }
+
+            continue;
+        }
+
+        const index = requireNumber(
+            value,
+            `eligible faceoff index for ${identity}`
+        );
+
+        adjustmentSum += coefficient * index;
+        supportedSeasons.push(season);
+    }
+
+    return {
+        faceoffSupportedSeasons: supportedSeasons.length,
+        faceoffIncludedSeasons: supportedSeasons.join(","),
+        faceoffAdjustment: adjustmentSum / coreSeasons.length
+    };
+}
+
+function applyHistoricalFaceoffAdjustments(performanceRows, faceoffRows) {
+    const adjusted = performanceRows.map((record) => {
+        const beforeIndex = record.performanceIndex;
+        const beforeRating = record.performanceRating;
+
+        if (beforeIndex === null) {
+            return {
+                ...record,
+                performanceBeforeFaceoffsIndex: null,
+                performanceBeforeFaceoffsRating: null,
+                faceoffSupportedSeasons: null,
+                faceoffIncludedSeasons: "",
+                faceoffAdjustment: null
+            };
+        }
+
+        if (!Number.isFinite(beforeIndex)) {
+            throw new Error(
+                `Invalid Performance index for ${record.playerId}`
+            );
+        }
+
+        const adjustment = calculateHistoricalFaceoffAdjustment(
+            record,
+            faceoffRows
+        );
+
+        return {
+            ...record,
+            performanceBeforeFaceoffsIndex: beforeIndex,
+            performanceBeforeFaceoffsRating: beforeRating,
+            ...adjustment,
+            performanceIndex: beforeIndex + adjustment.faceoffAdjustment
+        };
+    });
+
+    return addPercentileRatings(
+        adjusted,
+        (record) => record.position,
+        "performanceIndex",
+        "performanceRating"
+    );
+}
+
 module.exports = {
     calculatePerformanceIndex,
-    buildPerformanceHistoricalScores
+    buildPerformanceHistoricalScores,
+    calculateHistoricalFaceoffAdjustment,
+    applyHistoricalFaceoffAdjustments
 };

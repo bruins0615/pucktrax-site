@@ -1,4 +1,4 @@
-# PuckTrax Performance Model v1 — provisional specification
+# PuckTrax Performance Model — provisional specification
 
 ## Purpose
 
@@ -16,7 +16,14 @@ Core index = 0.75 × offensive index + 0.25 × defensive index
 
 Discipline adjustment = 0.025 × discipline index
 
-Performance index = Core index + Discipline adjustment
+Season faceoff adjustment = 0.025 × qualifying season faceoff index
+
+Historical faceoff adjustment =
+sum of season faceoff adjustments across qualifying Core seasons
+/ number of qualifying Core seasons
+
+Performance index =
+Core index + Discipline adjustment + Historical faceoff adjustment
 
 Use unrounded indices. Do not combine displayed category grades.
 
@@ -36,6 +43,28 @@ Do not substitute zero or redistribute weights.
 
 Retain Core results separately when the broader Performance result
 cannot be calculated.
+
+## Faceoff adjustment coverage
+
+Apply signed faceoff adjustments only in seasons included in the
+player's qualifying Core history.
+
+A qualifying faceoff season can add credit or produce a deduction.
+Incomplete, limited-sample and not-applicable faceoff seasons receive
+no adjustment. Their standalone faceoff indices remain unavailable,
+not zero grades.
+
+Average the season adjustments across all qualifying Core seasons,
+not only the seasons with eligible faceoff indices.
+
+Preserve the number and identity of seasons supporting the adjustment.
+For example: Faceoff adjustment supported in 1 of 3 Core seasons.
+
+An unexpectedly missing faceoff record is a coverage problem.
+Do not silently treat it as a non-taker or incomplete sample.
+
+Faceoff eligibility uses the existing overall and zone requirements.
+No additional PP or SH adjustment is included.
 
 ## Grading
 
@@ -67,7 +96,11 @@ Qualifying short histories remain unadjusted.
 
 ## Other categories
 
-Faceoffs and Physicality have no contribution to this formula yet.
+Faceoffs are implemented as a signed 0.025 adjustment using the
+season-coverage rules above. Performance outputs use
+performance-v2-provisional.
+
+Physicality has no contribution to this formula yet.
 
 Availability remains separate from performance when playing.
 Its eventual relationship to season value delivered is undecided.
@@ -82,14 +115,16 @@ Outputs:
 - `data/performance-ratings/performance-review.csv`
 - `data/performance-ratings/model-metadata.json`
 
-Outputs preserve Core, the Discipline index, its weighted adjustment,
-the combined Performance index, coverage and positional grading.
+Outputs preserve Core, the Discipline adjustment, the historical
+Faceoff adjustment, supporting-season counts and IDs, combined
+Performance indices and positional grades. The pre-Faceoff
+Performance index and grade remain available for comparison.
 
 Metadata records settings, input model versions, output counts and
 SHA-256 fingerprints of the exact inputs.
 
 The current reference snapshot contains 1,196 historical records:
-864 graded and 332 ungraded. Nine named examples are saved for review.
+864 graded and 332 ungraded. Sixteen named examples are saved for review.
 Counts describe this snapshot, not permanent requirements.
 
 A read-only verification reconciled source indices, weighted adjustments,
@@ -112,3 +147,8 @@ review output while additional auxiliary contributions are considered.
 - [x] Verify saved calculations, percentiles and input fingerprints.
 - [ ] Decide presentation before changing displayed grades.
 - [ ] Decide remaining auxiliary contributions separately.
+- [x] Implement and test signed Faceoff adjustments.
+- [x] Validate partial histories and missing faceoff records.
+- [x] Verify saved Faceoff adjustments, support counts and final percentiles.
+- [x] Save supporting-season counts and regenerate Performance outputs
+      under performance-v2-provisional.
