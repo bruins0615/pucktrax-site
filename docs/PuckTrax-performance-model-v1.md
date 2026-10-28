@@ -24,6 +24,7 @@ sum of season faceoff adjustments across qualifying Core seasons
 
 Performance index =
 Core index + Discipline adjustment + Historical faceoff adjustment
++ Historical Physicality bonus
 
 Use unrounded indices. Do not combine displayed category grades.
 
@@ -32,6 +33,9 @@ Do not add that bonus again.
 
 The coefficient is a provisional design choice, not an empirically
 estimated conversion to goals or wins.
+
+Historical Physicality bonus =
+average capped season Physicality bonus across qualifying Core seasons
 
 ## Historical coverage
 
@@ -100,7 +104,11 @@ Faceoffs are implemented as a signed 0.025 adjustment using the
 season-coverage rules above. Performance outputs use
 performance-v2-provisional.
 
-Physicality has no contribution to this formula yet.
+Physicality is approved as a positive-only bonus using a 0.025
+season coefficient and 0.25 season cap. Average capped bonuses across
+qualifying Core seasons, including valid zero-bonus seasons.
+Missing eligible records are errors. Integration is pending.
+Saved Performance v2 outputs do not include Physicality yet.
 
 Availability remains separate from performance when playing.
 Its eventual relationship to season value delivered is undecided.

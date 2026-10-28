@@ -227,12 +227,12 @@ function close(actual, expected) {
     );
 }
 
-test("physicality applies the 0.10 positive-only coefficient", () => {
+test("physicality applies the 0.025 positive-only coefficient", () => {
     const result = bonus();
 
     close(result.standardizedHitsPerGame, 2);
-    close(result.uncappedPhysicalityBonus, 0.2);
-    close(result.physicalityBonus, 0.2);
+    close(result.uncappedPhysicalityBonus, 0.05);
+    close(result.physicalityBonus, 0.05);
     assert.equal(result.capApplied, false);
 });
 
@@ -247,13 +247,14 @@ test("physicality earns zero at or below the positional average", () => {
 });
 
 test("physicality caps credit at 0.25 while preserving uncapped values", () => {
-    const boundary = bonus({ hitsPerGame: "2.25" });
+    const boundary = bonus({ hitsPerGame: "6" });
 
+    close(boundary.standardizedHitsPerGame, 10);
     close(boundary.uncappedPhysicalityBonus, 0.25);
     close(boundary.physicalityBonus, 0.25);
     assert.equal(boundary.capApplied, false);
 
-    const above = bonus({ hitsPerGame: "3" });
+    const above = bonus({ hitsPerGame: "9" });
 
     close(above.uncappedPhysicalityBonus, 0.4);
     close(above.physicalityBonus, 0.25);
@@ -274,7 +275,7 @@ test("physicality bonuses require at least 300 five-on-five minutes", () => {
             assert.equal(result.hits, "40");
         } else {
             assert.equal(result.sampleStatus, "Eligible");
-            close(result.physicalityBonus, 0.2);
+            close(result.physicalityBonus, 0.05);
         }
     }
 });

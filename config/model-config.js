@@ -57,8 +57,8 @@ module.exports = Object.freeze({
         neutralZoneFaceoffWinPct: 0.20
     }),
 
-    physicalityModelVersion: "physicality-v1-provisional",
-    physicalityBonusCoefficient: 0.10,
+    physicalityModelVersion: "physicality-v2-provisional",
+    physicalityBonusCoefficient: 0.025,
     physicalityBonusCap: 0.25,
 
     availabilityModelVersion: "availability-v1-provisional",

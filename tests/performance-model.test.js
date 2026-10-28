@@ -397,3 +397,107 @@ test("Faceoff integration rejects missing eligible coverage but retains ungraded
     assert.equal(result.faceoffAdjustment, null);
     assert.equal(result.faceoffSupportedSeasons, null);
 });
+
+const {
+    calculateHistoricalPhysicalityBonus
+} = require("../scripts/models/calculate-performance-ratings");
+
+function physicalitySeasonFixture(season, overrides = {}) {
+    return {
+        playerId: "1",
+        season,
+        sampleStatus: "Eligible",
+        physicalityBonus: "0.05",
+        ...overrides
+    };
+}
+
+test("historical Physicality averages saved bonuses including valid zeros", () => {
+    const result = calculateHistoricalPhysicalityBonus(
+        faceoffCoreFixture(),
+        [
+            physicalitySeasonFixture("20232024", {
+                physicalityBonus: "0.25"
+            }),
+            physicalitySeasonFixture("20242025", {
+                physicalityBonus: "0"
+            }),
+            physicalitySeasonFixture("20252026", {
+                physicalityBonus: "0.05"
+            })
+        ]
+    );
+
+    assert.equal(result.historicalPhysicalityBonus, (0.25 + 0 + 0.05) / 3);
+    assert.equal(result.physicalitySupportedSeasons, 3);
+    assert.equal(result.physicalityPositiveSeasons, 2);
+});
+
+test("historical Physicality uses only qualifying Core seasons and the correct player", () => {
+    const result = calculateHistoricalPhysicalityBonus(
+        faceoffCoreFixture({
+            eligibleSeasons: "1",
+            includedSeasons: "20252026"
+        }),
+        [
+            physicalitySeasonFixture("20232024", {
+                physicalityBonus: "0.25"
+            }),
+            physicalitySeasonFixture("20252026"),
+            physicalitySeasonFixture("20252026", {
+                playerId: "2",
+                physicalityBonus: "0.25"
+            })
+        ]
+    );
+
+    assert.equal(result.historicalPhysicalityBonus, 0.05);
+    assert.equal(result.physicalitySupportedSeasons, 1);
+    assert.equal(result.physicalityIncludedSeasons, "20252026");
+});
+
+test("missing and duplicate Physicality records fail", () => {
+    const core = faceoffCoreFixture({
+        eligibleSeasons: "1",
+        includedSeasons: "20252026"
+    });
+
+    assert.throws(
+        () => calculateHistoricalPhysicalityBonus(core, []),
+        /Missing Physicality record/
+    );
+
+    const record = physicalitySeasonFixture("20252026");
+
+    assert.throws(
+        () => calculateHistoricalPhysicalityBonus(core, [record, record]),
+        /Duplicate Physicality record/
+    );
+});
+
+test("invalid Physicality bonuses and conflicting eligibility fail", () => {
+    const core = faceoffCoreFixture({
+        eligibleSeasons: "1",
+        includedSeasons: "20252026"
+    });
+
+    for (const value of ["", null, undefined, "invalid", -0.01, 0.26]) {
+        assert.throws(
+            () => calculateHistoricalPhysicalityBonus(core, [
+                physicalitySeasonFixture("20252026", {
+                    physicalityBonus: value
+                })
+            ]),
+            /Missing number|Invalid number|outside cap/
+        );
+    }
+
+    assert.throws(
+        () => calculateHistoricalPhysicalityBonus(core, [
+            physicalitySeasonFixture("20252026", {
+                sampleStatus: "Limited sample"
+            })
+        ]),
+        /eligibility differs from Core/
+    );
+});

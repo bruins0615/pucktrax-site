@@ -1,4 +1,4 @@
-# PuckTrax Physicality Model v1 — provisional specification
+# PuckTrax Physicality Model — provisional specification
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Standardized hit value =
 (player hits/game − same-season positional mean)
 ÷ positional population standard deviation.
 
-Uncapped bonus = 0.10 × max(0, standardized hit value).
+Uncapped bonus = 0.025 × max(0, standardized hit value).
 
 Physicality bonus = min(0.25, uncapped bonus).
 
@@ -49,13 +49,27 @@ Keep calculation components in expandable details. Identify when the
 Blocks and takeaways already contribute to defense and are not
 scored again here. Penalties remain in Discipline.
 
-## Open decisions
+## Historical contribution to Performance
 
-Historical presentation uses separate season statistics without an
-aggregated bonus or standalone 0–10 physicality grade. Any future
-historical bonus aggregation remains undecided.
-A high hitting rank must not be presented as high overall player value.
-Availability and durability remain a separate investigation.
+Average capped season bonuses equally across the player's qualifying
+Core seasons. Include qualifying seasons with valid zero bonuses.
+
+Apply the 0.25 cap separately to each season before averaging.
+Use only seasons included in the Core history.
+
+Missing or invalid eligible Physicality records are coverage errors,
+not assumed zero bonuses.
+
+This historical bonus is approved for addition to the Performance
+index. Integration is pending. No second Physicality coefficient
+is applied to the saved bonus.
+
+No standalone 0–10 Physicality grade is assigned.
+
+Positive-only refers to the index contribution. A percentile grade
+can still fall when other players gain more credit.
+
+Availability remains separate from performance when playing.
 
 ## Saved implementation
 
@@ -80,9 +94,9 @@ The current snapshot contains 2,784 player-seasons:
 2,020 eligible bonuses and 764 unscored records.
 There are 12 same-season positional baselines.
 
-Among eligible records, 823 receive positive bonuses and 1,197 receive
-zero. The cap reduces 44 bonuses. Preserve standardized hit values,
-uncapped bonuses, capped bonuses and the cap-applied flag.
+Preserve standardized hit values, uncapped bonuses, capped bonuses
+and the cap-applied flag. Regenerate outputs after coefficient changes;
+bonus amounts and cap counts depend on the model version.
 
 The CSV capApplied field is explicitly exported as true or false for
 eligible records and blank for unscored records. A true flag means
@@ -91,7 +105,7 @@ the uncapped amount strictly exceeds the cap.
 Metadata records settings and SHA-256 fingerprints of the exact
 reference contents parsed for calculation.
 
-Sixty-four automated tests pass across the project. Saved bonus
+Automated tests cover collection and bonus calculations. Saved bonus
 formulas, cap flags, eligibility handling and source fingerprints
 were checked. These checks verify implementation, not the empirical
 value of the chosen coefficient or cap.
@@ -117,10 +131,12 @@ players receive zero bonus without a deduction.
 - [x] Classify physicality as an auxiliary contribution.
 - [x] Choose hits/game as the main measure.
 - [x] Set positive-only credit above the positional baseline.
-- [x] Choose a 0.10 coefficient and 0.25 cap.
+- [x] Choose a provisional 0.025 coefficient and retain the 0.25 cap.
 - [x] Compare capped and uncapped results across three seasons.
 - [x] Build and test league-wide reference collection.
 - [x] Calculate and validate season bonuses.
 - [x] Decide historical presentation.
 - [x] Add physicality to the player profile.
+- [x] Choose equal averaging across qualifying Core seasons.
+- [ ] Integrate the historical bonus into Performance and verify outputs.
 - [ ] Decide how physicality contributes to overall value.

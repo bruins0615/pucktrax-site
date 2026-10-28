@@ -619,9 +619,97 @@ function applyHistoricalFaceoffAdjustments(performanceRows, faceoffRows) {
     );
 }
 
+function calculateHistoricalPhysicalityBonus(coreRecord, physicalityRows) {
+    const configuredSeasons =
+        MODEL_CONFIG.historicalSeasons.map(String);
+
+    const seasons = String(coreRecord.includedSeasons ?? "")
+        .split(",")
+        .map((season) => season.trim())
+        .filter(Boolean)
+        .sort();
+
+    const count = requireNumber(
+        coreRecord.eligibleSeasons,
+        "Core eligible seasons for Physicality"
+    );
+
+    if (
+        !Number.isInteger(count) ||
+        count <= 0 ||
+        count !== seasons.length ||
+        new Set(seasons).size !== seasons.length ||
+        seasons.some((season) => !configuredSeasons.includes(season))
+    ) {
+        throw new Error("Invalid Core coverage for Physicality");
+    }
+
+    const cap = MODEL_CONFIG.physicalityBonusCap;
+
+    if (!Number.isFinite(cap) || cap < 0) {
+        throw new Error("Invalid Physicality cap");
+    }
+
+    const playerId = String(coreRecord.playerId);
+    const bySeason = new Map();
+
+    for (const row of physicalityRows) {
+        if (String(row.playerId) !== playerId) continue;
+
+        const season = String(row.season);
+        if (!seasons.includes(season)) continue;
+
+        if (bySeason.has(season)) {
+            throw new Error(
+                `Duplicate Physicality record: ${playerId}-${season}`
+            );
+        }
+
+        bySeason.set(season, row);
+    }
+
+    let total = 0;
+    let positiveSeasons = 0;
+
+    for (const season of seasons) {
+        const record = bySeason.get(season);
+        const identity = `${playerId}-${season}`;
+
+        if (!record) {
+            throw new Error(`Missing Physicality record: ${identity}`);
+        }
+
+        if (record.sampleStatus !== "Eligible") {
+            throw new Error(
+                `Physicality eligibility differs from Core: ${identity}`
+            );
+        }
+
+        const bonus = requireNumber(
+            record.physicalityBonus,
+            `Physicality bonus for ${identity}`
+        );
+
+        if (bonus < 0 || bonus > cap) {
+            throw new Error(`Physicality bonus outside cap: ${identity}`);
+        }
+
+        total += bonus;
+        if (bonus > 0) positiveSeasons++;
+    }
+
+    return {
+        physicalitySupportedSeasons: seasons.length,
+        physicalityIncludedSeasons: seasons.join(","),
+        physicalityPositiveSeasons: positiveSeasons,
+        historicalPhysicalityBonus: total / seasons.length
+    };
+}
+
 module.exports = {
     calculatePerformanceIndex,
     buildPerformanceHistoricalScores,
     calculateHistoricalFaceoffAdjustment,
-    applyHistoricalFaceoffAdjustments
+    applyHistoricalFaceoffAdjustments,
+    calculateHistoricalPhysicalityBonus
 };

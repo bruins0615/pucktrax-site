@@ -59,11 +59,11 @@ independently qualified comparisons, with explicit reasons for
 incomplete combined grades.
 
 Physicality uses a positive-only above-average positional hits/game
-bonus with a 0.10 coefficient and 0.25 cap. The Physicality tab shows
-latest-season statistics, positional comparisons and expandable
-season history. Supporting rates and bonus calculations are collapsed.
-No standalone physicality grade is assigned; historical bonus
-aggregation and overall-value contribution remain undecided.
+bonus with a 0.025 coefficient and 0.25 season cap. The Physicality tab
+shows statistics, positional comparisons and season history, with
+calculation details collapsed. No standalone Physicality grade is
+assigned. Equal averaging across qualifying Core seasons is approved
+for the Performance roll-up; integration is pending.
 
 Veteran Availability season and historical grades are implemented.
 Eligibility requires 250 career NHL regular-season appearances entering
