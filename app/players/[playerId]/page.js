@@ -13,7 +13,7 @@ import DisciplinePanel from "../../../components/discipline-panel";
 import FaceoffPanel from "../../../components/faceoff-panel";
 import PhysicalityPanel from "../../../components/physicality-panel";
 import AvailabilityPanel from "../../../components/availability-panel";
-import CorePerformanceRating from "../../../components/core-performance-rating";
+import PerformanceRating from "../../../components/performance-rating";
 
 function seasonLabel(season) {
     return `${season.slice(0, 4)}–${season.slice(6, 8)}`;
@@ -71,6 +71,7 @@ export default async function PlayerPage({ params }) {
         physicality,
         availability,
         corePerformance,
+        performance,
         coreStats,
         fiveOnFive,
         teamContext,
@@ -132,7 +133,10 @@ export default async function PlayerPage({ params }) {
                             {positionNames[historical.position] ??
                                 historical.position}
                         </p>
-                        <CorePerformanceRating data={corePerformance} />
+                        <PerformanceRating
+                            data={performance}
+                            core={corePerformance}
+                        />
                         <section
                             aria-labelledby="offense-heading"
                             className="mt-6 border-t border-slate-700 pt-6"

@@ -196,8 +196,13 @@ export default function PlayerSearch({ players }) {
                 ? "defenseRating"
                 : "offenseRating";
 
-        const first = ratingOf(a, ratingField);
-        const second = ratingOf(b, ratingField);
+        const first = sort.startsWith("performance-")
+            ? ratingOf(a.performance ?? {}, "performanceRating")
+            : ratingOf(a, ratingField);
+
+        const second = sort.startsWith("performance-")
+            ? ratingOf(b.performance ?? {}, "performanceRating")
+            : ratingOf(b, ratingField);
 
         // Unrated players go last in either rating sort.
         if (first === null && second === null) return byName;
@@ -208,7 +213,8 @@ export default function PlayerSearch({ players }) {
             (
                 sort === "rating-high" ||
                     sort === "defense-high" ||
-                    sort === "core-high"
+                    sort === "core-high" ||
+                    sort === "performance-high"
                     ? second - first
                     : first - second
             ) || byName
@@ -356,6 +362,8 @@ export default function PlayerSearch({ players }) {
                     options={[
                         ["name", "Name A–Z"],
                         ["name-desc", "Name Z–A"],
+                        ["performance-high", "Highest performance"],
+                        ["performance-low", "Lowest performance"],
                         ["core-high", "Highest core performance"],
                         ["core-low", "Lowest core performance"],
                         ["rating-high", "Highest offense"],
@@ -374,12 +382,13 @@ export default function PlayerSearch({ players }) {
             </p>
 
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                Provisional core performance combines 75% offensive index
-                and 25% defensive index before positional percentile grading.
+                Provisional Performance combines Core with Discipline,
+                Faceoff and Physicality adjustments before positional
+                percentile grading. Core remains available separately.
                 Core history filters affect the displayed list only.
                 Latest-season qualification refers to the historical
                 window&apos;s final completed season, not the live season
-                or the selected team-affiliation season.
+                or selected team-affiliation season.
             </p>
 
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
@@ -420,6 +429,22 @@ export default function PlayerSearch({ players }) {
                             "corePerformanceRating"
                         );
 
+                        const performance = ratingOf(
+                            player.performance ?? {},
+                            "performanceRating"
+                        );
+
+                        function contribution(field) {
+                            const value = ratingOf(
+                                player.performance ?? {},
+                                field
+                            );
+
+                            return value === null
+                                ? "—"
+                                : `${value > 0 ? "+" : ""}${value.toFixed(3)}`;
+                        }
+
                         const coreSeasons = Number(player.coreEligibleSeasons);
 
                         const coreMinutes =
@@ -458,13 +483,13 @@ export default function PlayerSearch({ players }) {
 
                                 <div className="text-center">
                                     <div className="flex items-center justify-center gap-1">
-                                        <p className="text-[11px] font-medium uppercase tracking-wide text-white">
-                                            Core
+                                        <p className="text-[11px] font-bold uppercase tracking-wide text-white">
+                                            Performance
                                         </p>
 
                                         <details className="relative z-20 text-left">
                                             <summary
-                                                aria-label={`About ${player.player}'s core performance grade`}
+                                                aria-label={`About ${player.player}'s performance grade`}
                                                 className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-lg text-slate-400 hover:text-sky-300 focus-visible:outline-2 focus-visible:outline-sky-400 [&::-webkit-details-marker]:hidden"
                                             >
                                                 <span
@@ -477,16 +502,49 @@ export default function PlayerSearch({ players }) {
 
                                             <div className="absolute right-0 top-full mt-1 w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-slate-600 bg-[#14243b] p-4 text-xs leading-relaxed text-slate-300 shadow-xl">
                                                 <p className="font-semibold text-white">
-                                                    Provisional core performance
+                                                    Provisional historical Performance
                                                 </p>
 
                                                 <p className="mt-3">
-                                                    Combines 75% offensive index
-                                                    and 25% defensive index,
-                                                    then grades the result
-                                                    against positional peers.
-                                                    Category grades are not
-                                                    averaged.
+                                                    Starts with Core: 75% offensive
+                                                    index and 25% defensive index.
+                                                    Discipline, Faceoffs and
+                                                    Physicality then adjust the
+                                                    index before positional
+                                                    percentile grading.
+                                                </p>
+
+                                                <p className="mt-3">
+                                                    Core grade:{" "}
+                                                    {core === null
+                                                        ? "Unrated"
+                                                        : `${core.toFixed(1)} / 10`}
+                                                </p>
+
+                                                <dl className="mt-3 space-y-2">
+                                                    {[
+                                                        ["Core index", "corePerformanceIndex"],
+                                                        ["Discipline adjustment", "disciplineAdjustment"],
+                                                        ["Faceoff adjustment", "faceoffAdjustment"],
+                                                        ["Physicality bonus", "historicalPhysicalityBonus"],
+                                                        ["Performance index", "performanceIndex"]
+                                                    ].map(([label, field]) => (
+                                                        <div
+                                                            key={field}
+                                                            className="flex justify-between gap-3"
+                                                        >
+                                                            <dt>{label}</dt>
+                                                            <dd className="font-semibold text-white tabular-nums">
+                                                                {contribution(field)}
+                                                            </dd>
+                                                        </div>
+                                                    ))}
+                                                </dl>
+
+                                                <p className="mt-3">
+                                                    These are index amounts,
+                                                    not additions to the displayed
+                                                    0–10 grade.
                                                 </p>
 
                                                 <p className="mt-3">
@@ -502,27 +560,37 @@ export default function PlayerSearch({ players }) {
                                                         : ""}
                                                 </p>
 
-                                                {core !== null && (
-                                                    <p className="mt-2">
-                                                        Based on{" "}
-                                                        {player.coreIncludedSeasons
-                                                            .split(",")
-                                                            .map((season) =>
-                                                                `${season.slice(0, 4)}–${season.slice(6, 8)}`
-                                                            )
-                                                            .join(", ")}
-                                                    </p>
+                                                {performance !== null && (
+                                                    <>
+                                                        <p className="mt-2">
+                                                            Based on{" "}
+                                                            {player.performance.includedSeasons
+                                                                .split(",")
+                                                                .map((season) =>
+                                                                    `${season.slice(0, 4)}–${season.slice(6, 8)}`
+                                                                )
+                                                                .join(", ")}
+                                                        </p>
+
+                                                        <p className="mt-2">
+                                                            Faceoff adjustment supported
+                                                            in{" "}
+                                                            {player.performance.faceoffSupportedSeasons}
+                                                            {" "}of{" "}
+                                                            {player.performance.eligibleSeasons}
+                                                            {" "}qualifying Core seasons.
+                                                        </p>
+                                                    </>
                                                 )}
 
                                                 <p className="mt-3">
-                                                    {core === null
-                                                        ? "No matched eligible history is available for a combined grade."
-                                                        : "Shorter histories provide less evidence of sustained performance."}
+                                                    {performance === null
+                                                        ? "No matched eligible Performance result is available."
+                                                        : "Shorter histories provide less evidence of sustained performance. Grades can move when peers receive adjustments, even without an individual deduction."}
                                                 </p>
 
                                                 <p className="mt-3">
-                                                    Availability and auxiliary
-                                                    categories are not included.
+                                                    Availability remains separate.
                                                     This is not a contract-value
                                                     or projected-ability grade.
                                                 </p>
@@ -531,11 +599,11 @@ export default function PlayerSearch({ players }) {
                                     </div>
 
                                     <p className="text-[36px] font-bold leading-none text-sky-300 tabular-nums">
-                                        {core === null ? (
+                                        {performance === null ? (
                                             <span className="text-xl">Unrated</span>
                                         ) : (
                                             <>
-                                                {core.toFixed(1)}
+                                                {performance.toFixed(1)}
                                                 <span className="ml-1 text-xs font-normal text-slate-400">
                                                     / 10
                                                 </span>
