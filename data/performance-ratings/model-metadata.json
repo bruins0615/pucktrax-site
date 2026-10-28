@@ -1,6 +1,6 @@
 {
-  "modelVersion": "performance-v2-provisional",
-  "generatedAt": "2026-10-27T20:38:44.737Z",
+  "modelVersion": "performance-v3-provisional",
+  "generatedAt": "2026-10-28T18:23:58.814Z",
   "historicalSeasons": [
     "20232024",
     "20242025",
@@ -8,15 +8,18 @@
   ],
   "disciplineAdjustmentCoefficient": 0.025,
   "faceoffAdjustmentCoefficient": 0.025,
+  "physicalityCoefficient": 0.025,
+  "physicalitySeasonCap": 0.25,
   "coreWeights": {
     "offense": 0.75,
     "defense": 0.25
   },
-  "formula": "historical Core index + discipline coefficient * historical Discipline index + historical Faceoff adjustment",
+  "formula": "historical Core index + discipline coefficient * historical Discipline index + historical Faceoff adjustment + historical Physicality bonus",
   "inputModels": {
     "core": "core-performance-v1-provisional",
     "discipline": "discipline-v1-provisional",
-    "faceoffs": "faceoffs-v1-provisional"
+    "faceoffs": "faceoffs-v1-provisional",
+    "physicality": "physicality-v2-provisional"
   },
   "aggregation": "Historical Core and Discipline indices must cover identical eligible seasons and the same position.",
   "comparisonGroup": "Same latest recorded NHL position; eligible matched histories.",
@@ -25,7 +28,8 @@
   "missingDataPolicy": "Missing, mismatched and ineligible histories remain ungraded. Core results are preserved separately.",
   "disciplinePolicy": "The Discipline index already includes the drawing bonus. It is not added a second time. PIM includes fighting and misconducts; this is not a power-play opportunity estimate.",
   "faceoffPolicy": "Apply signed adjustments in qualifying Faceoff seasons included in Core history. Divide their sum by all qualifying Core seasons. Documented nonqualifying seasons receive no adjustment; missing records fail.",
-  "excludedCategories": "No physicality or availability contribution.",
+  "physicalityPolicy": "Average saved capped season bonuses equally across qualifying Core seasons, including valid zero bonuses. No second coefficient is applied. Missing eligible records fail. Positive-only index credit does not guarantee a nondecreasing percentile grade.",
+  "excludedCategories": "No availability contribution.",
   "interpretation": "Provisional descriptive performance composite, not contract value, total season value delivered or projected ability.",
   "reviewPlayers": [
     "Jaccob Slavin",
@@ -43,7 +47,13 @@
     "Pavel Zacha",
     "Leo Carlsson",
     "Connor Bedard",
-    "Logan Cooley"
+    "Logan Cooley",
+    "Jeremy Lauzon",
+    "Kiefer Sherwood",
+    "Garnet Hathaway",
+    "Radko Gudas",
+    "Trent Frederic",
+    "Tom Wilson"
   ],
   "sourceFingerprints": [
     {
@@ -81,6 +91,18 @@
       "algorithm": "sha256",
       "hash": "dddf03acf6b2a645f80bb869a437a42b13f00d57759c7994bc92aadd0f34a155",
       "bytes": 2202
+    },
+    {
+      "path": "data/physicality-bonuses/season-physicality-bonuses.csv",
+      "algorithm": "sha256",
+      "hash": "163cdb2ea9851fd63df0042ab998f46f22b0722037ea2e1e03ab730f1c1a54b9",
+      "bytes": 405447
+    },
+    {
+      "path": "data/physicality-bonuses/model-metadata.json",
+      "algorithm": "sha256",
+      "hash": "cfaef1055963a5cbf75a1c9b89a8c4b09618a9f8373b2718d4be3f27a60b8927",
+      "bytes": 1576
     }
   ],
   "outputCounts": {
@@ -90,7 +112,8 @@
     "negativeAdjustments": 299,
     "zeroAdjustments": 0,
     "playersWithFaceoffSupport": 167,
-    "reviewPlayers": 16,
+    "playersWithPositivePhysicalityBonus": 407,
+    "reviewPlayers": 22,
     "statusCounts": {
       "Eligible": 864,
       "No eligible matched history": 332

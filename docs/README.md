@@ -74,10 +74,10 @@ outside-NHL seasons are excluded. Unresolved coverage remains ungraded
 and is explicitly flagged. The Availability tab displays historical
 coverage and season-level explanations. Coverage review remains open.
 
-Performance v2 combines Core with a 0.025 historical Discipline
-adjustment and signed 0.025 season-level Faceoff adjustments averaged
-across qualifying Core seasons. Faceoff support counts and included
-seasons are preserved. Missing records fail validation; documented
-nonqualifying seasons receive no adjustment. Results, review examples
-and input fingerprints are saved separately. The website continues
-to display Core while Physicality and final presentation are considered.
+Performance v3 combines Core with signed 0.025 Discipline and Faceoff
+adjustments and a positive-only historical Physicality bonus.
+Physicality uses a 0.025 season coefficient and 0.25 season cap.
+Season-level auxiliary contributions are averaged across qualifying
+Core seasons with explicit coverage rules. Results, review examples
+and input fingerprints are saved separately. Availability remains
+separate. The website currently displays Core.

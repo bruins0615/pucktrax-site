@@ -501,3 +501,70 @@ test("invalid Physicality bonuses and conflicting eligibility fail", () => {
         /eligibility differs from Core/
     );
 });
+
+const {
+    applyHistoricalPhysicalityBonuses
+} = require("../scripts/models/calculate-performance-ratings");
+
+test("Physicality integration adds the historical bonus once and preserves prior results", () => {
+    const base = buildPerformanceHistoricalScores(
+        [performanceHistoryFixture()],
+        [performanceHistoryFixture()]
+    );
+
+    const withFaceoffs = applyHistoricalFaceoffAdjustments(base, [
+        faceoffSeasonFixture("20242025", { faceoffIndex: "0" }),
+        faceoffSeasonFixture("20252026", { faceoffIndex: "0" })
+    ]);
+
+    const [result] = applyHistoricalPhysicalityBonuses(
+        withFaceoffs,
+        [
+            physicalitySeasonFixture("20242025", {
+                physicalityBonus: "0.1"
+            }),
+            physicalitySeasonFixture("20252026", {
+                physicalityBonus: "0"
+            })
+        ]
+    );
+
+    assert.equal(result.corePerformanceIndex, 1);
+    assert.equal(result.disciplineAdjustment, 0.05);
+    assert.equal(result.faceoffAdjustment, 0);
+    assert.equal(result.performanceBeforePhysicalityIndex, 1.05);
+    assert.equal(result.performanceBeforePhysicalityRating, 5);
+    assert.equal(result.historicalPhysicalityBonus, 0.05);
+    assert.equal(result.physicalitySupportedSeasons, 2);
+    assert.equal(result.physicalityPositiveSeasons, 1);
+    assert.equal(result.performanceIndex, 1.05 + 0.05);
+    assert.equal(result.performanceRating, 5);
+});
+
+test("Physicality integration rejects missing coverage and preserves ungraded players", () => {
+    const base = buildPerformanceHistoricalScores(
+        [performanceHistoryFixture()],
+        [performanceHistoryFixture()]
+    );
+
+    assert.throws(
+        () => applyHistoricalPhysicalityBonuses(base, []),
+        /Missing Physicality record/
+    );
+
+    const empty = performanceHistoryFixture({
+        eligibleSeasons: "0",
+        includedSeasons: "",
+        corePerformanceIndex: "",
+        corePerformanceRating: "",
+        disciplineIndex: ""
+    });
+
+    const ungraded = buildPerformanceHistoricalScores([empty], [empty]);
+    const [result] = applyHistoricalPhysicalityBonuses(ungraded, []);
+
+    assert.equal(result.performanceIndex, null);
+    assert.equal(result.performanceRating, null);
+    assert.equal(result.historicalPhysicalityBonus, null);
+    assert.equal(result.physicalitySupportedSeasons, null);
+});

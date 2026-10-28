@@ -138,5 +138,5 @@ players receive zero bonus without a deduction.
 - [x] Decide historical presentation.
 - [x] Add physicality to the player profile.
 - [x] Choose equal averaging across qualifying Core seasons.
-- [ ] Integrate the historical bonus into Performance and verify outputs.
+- [x] Integrate the historical bonus into Performance and verify outputs.
 - [ ] Decide how physicality contributes to overall value.

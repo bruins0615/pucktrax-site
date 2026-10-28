@@ -28,6 +28,7 @@ as a measure of player value.
       to the Performance index, preserving Core separately.
 - [x] Implement and verify signed 0.025 Faceoff adjustments, averaged
       across qualifying Core seasons with explicit support counts.
+- [x] Integrate and verify historical Physicality bonuses in Performance.
 
 ## Remaining category work
 

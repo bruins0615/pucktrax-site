@@ -72,7 +72,7 @@ module.exports = Object.freeze({
         defense: 0.25
     }),
 
-    performanceModelVersion: "performance-v2-provisional",
+    performanceModelVersion: "performance-v3-provisional",
     disciplineAdjustmentCoefficient: 0.025,
     faceoffAdjustmentCoefficient: 0.025
 });

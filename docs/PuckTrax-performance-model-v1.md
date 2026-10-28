@@ -101,14 +101,15 @@ Qualifying short histories remain unadjusted.
 ## Other categories
 
 Faceoffs are implemented as a signed 0.025 adjustment using the
-season-coverage rules above. Performance outputs use
-performance-v2-provisional.
+season-coverage rules above.
 
-Physicality is approved as a positive-only bonus using a 0.025
-season coefficient and 0.25 season cap. Average capped bonuses across
-qualifying Core seasons, including valid zero-bonus seasons.
-Missing eligible records are errors. Integration is pending.
-Saved Performance v2 outputs do not include Physicality yet.
+Physicality is implemented as a positive-only bonus using a 0.025
+season coefficient and 0.25 season cap. Capped bonuses are averaged
+across qualifying Core seasons, including valid zero-bonus seasons.
+Missing eligible records fail validation. No second coefficient
+is applied.
+
+Current outputs use performance-v3-provisional.
 
 Availability remains separate from performance when playing.
 Its eventual relationship to season value delivered is undecided.
@@ -123,16 +124,19 @@ Outputs:
 - `data/performance-ratings/performance-review.csv`
 - `data/performance-ratings/model-metadata.json`
 
-Outputs preserve Core, the Discipline adjustment, the historical
-Faceoff adjustment, supporting-season counts and IDs, combined
-Performance indices and positional grades. The pre-Faceoff
-Performance index and grade remain available for comparison.
+Outputs preserve Core, Discipline and Faceoff adjustments, the
+historical Physicality bonus, supporting-season counts and IDs,
+combined Performance indices and positional grades.
+
+Pre-Faceoff and pre-Physicality indices and grades remain available
+for comparison. Positive-only Physicality credit does not guarantee
+an unchanged or higher percentile grade when peers gain more.
 
 Metadata records settings, input model versions, output counts and
 SHA-256 fingerprints of the exact inputs.
 
 The current reference snapshot contains 1,196 historical records:
-864 graded and 332 ungraded. Sixteen named examples are saved for review.
+864 graded and 332 ungraded. 22 named examples are saved for review.
 Counts describe this snapshot, not permanent requirements.
 
 A read-only verification reconciled source indices, weighted adjustments,
@@ -160,3 +164,7 @@ review output while additional auxiliary contributions are considered.
 - [x] Verify saved Faceoff adjustments, support counts and final percentiles.
 - [x] Save supporting-season counts and regenerate Performance outputs
       under performance-v2-provisional.
+- [x] Integrate and test historical Physicality bonuses.
+- [x] Regenerate performance-v3-provisional outputs.
+- [x] Verify all components, season averaging, final percentiles
+      and input fingerprints.

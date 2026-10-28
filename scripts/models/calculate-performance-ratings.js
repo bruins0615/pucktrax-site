@@ -252,13 +252,35 @@ function main() {
         "data/discipline-ratings/model-metadata.json"
     ));
 
+    const physicalityRows = readCsv(
+        "data/physicality-bonuses/season-physicality-bonuses.csv"
+    );
+
+    const physicalityMetadata = JSON.parse(readSource(
+        "data/physicality-bonuses/model-metadata.json"
+    ));
+
+    if (
+        physicalityMetadata.coefficient !==
+        MODEL_CONFIG.physicalityBonusCoefficient ||
+        physicalityMetadata.cap !== MODEL_CONFIG.physicalityBonusCap ||
+        physicalityMetadata.minimumMinutes5v5 !==
+        MODEL_CONFIG.minimumMinutes5v5
+    ) {
+        throw new Error(
+            "Saved Physicality settings differ from configuration. " +
+            "Regenerate the season Physicality bonuses."
+        );
+    }
+
     const configuredSeasons =
         MODEL_CONFIG.historicalSeasons.map(String);
 
     for (const [label, metadata, expectedVersion] of [
         ["Core", coreMetadata, MODEL_CONFIG.corePerformanceModelVersion],
         ["Discipline", disciplineMetadata, MODEL_CONFIG.disciplineModelVersion],
-        ["Faceoffs", faceoffMetadata, MODEL_CONFIG.faceoffModelVersion]
+        ["Faceoffs", faceoffMetadata, MODEL_CONFIG.faceoffModelVersion],
+        ["Physicality", physicalityMetadata, MODEL_CONFIG.physicalityModelVersion]
     ]) {
         if (
             metadata.modelVersion !== expectedVersion ||
@@ -288,9 +310,14 @@ function main() {
         disciplineRows
     );
 
-    const results = applyHistoricalFaceoffAdjustments(
+    const faceoffResults = applyHistoricalFaceoffAdjustments(
         disciplineResults,
         faceoffRows
+    );
+
+    const results = applyHistoricalPhysicalityBonuses(
+        faceoffResults,
+        physicalityRows
     ).sort((a, b) => Number(a.playerId) - Number(b.playerId));
 
     const reviewNames = [
@@ -309,7 +336,13 @@ function main() {
         "Pavel Zacha",
         "Leo Carlsson",
         "Connor Bedard",
-        "Logan Cooley"
+        "Logan Cooley",
+        "Jeremy Lauzon",
+        "Kiefer Sherwood",
+        "Garnet Hathaway",
+        "Radko Gudas",
+        "Trent Frederic",
+        "Tom Wilson"
     ];
 
     const review = reviewNames.map((name) => {
@@ -359,14 +392,20 @@ function main() {
                 MODEL_CONFIG.disciplineAdjustmentCoefficient,
             faceoffAdjustmentCoefficient:
                 MODEL_CONFIG.faceoffAdjustmentCoefficient,
+            physicalityCoefficient:
+                physicalityMetadata.coefficient,
+            physicalitySeasonCap:
+                physicalityMetadata.cap,
             coreWeights: savedWeights,
             formula:
                 "historical Core index + discipline coefficient * " +
-                "historical Discipline index + historical Faceoff adjustment",
+                "historical Discipline index + historical Faceoff adjustment " +
+                "+ historical Physicality bonus",
             inputModels: {
                 core: coreMetadata.modelVersion,
                 discipline: disciplineMetadata.modelVersion,
-                faceoffs: faceoffMetadata.modelVersion
+                faceoffs: faceoffMetadata.modelVersion,
+                physicality: physicalityMetadata.modelVersion
             },
             aggregation:
                 "Historical Core and Discipline indices must cover " +
@@ -389,8 +428,14 @@ function main() {
                 "included in Core history. Divide their sum by all " +
                 "qualifying Core seasons. Documented nonqualifying " +
                 "seasons receive no adjustment; missing records fail.",
+            physicalityPolicy:
+                "Average saved capped season bonuses equally across " +
+                "qualifying Core seasons, including valid zero bonuses. " +
+                "No second coefficient is applied. Missing eligible " +
+                "records fail. Positive-only index credit does not " +
+                "guarantee a nondecreasing percentile grade.",
             excludedCategories:
-                "No physicality or availability contribution.",
+                "No availability contribution.",
             interpretation:
                 "Provisional descriptive performance composite, not contract " +
                 "value, total season value delivered or projected ability.",
@@ -411,6 +456,9 @@ function main() {
                 playersWithFaceoffSupport: eligible.filter(
                     (record) => record.faceoffSupportedSeasons > 0
                 ).length,
+                playersWithPositivePhysicalityBonus: eligible.filter(
+                    (record) => record.historicalPhysicalityBonus > 0
+                ).length,
                 reviewPlayers: review.length,
                 statusCounts
             },
@@ -429,16 +477,14 @@ function main() {
     console.table(
         review.map((record) => ({
             player: record.player,
-            support:
-                record.performanceIndex === null
-                    ? "—"
-                    : `${record.faceoffSupportedSeasons}/${record.eligibleSeasons}`,
+            seasons: record.eligibleSeasons,
             discipline: display(record.disciplineAdjustment),
             faceoffs: display(record.faceoffAdjustment),
+            physicality: display(record.historicalPhysicalityBonus),
             performanceIndex: display(record.performanceIndex),
             coreGrade: display(record.corePerformanceRating, 1),
-            beforeFaceoffs: display(
-                record.performanceBeforeFaceoffsRating,
+            beforePhysicality: display(
+                record.performanceBeforePhysicalityRating,
                 1
             ),
             performanceGrade: display(record.performanceRating, 1),
@@ -706,10 +752,57 @@ function calculateHistoricalPhysicalityBonus(coreRecord, physicalityRows) {
     };
 }
 
+function applyHistoricalPhysicalityBonuses(performanceRows, physicalityRows) {
+    const adjusted = performanceRows.map((record) => {
+        const beforeIndex = record.performanceIndex;
+        const beforeRating = record.performanceRating;
+
+        if (beforeIndex === null) {
+            return {
+                ...record,
+                performanceBeforePhysicalityIndex: null,
+                performanceBeforePhysicalityRating: null,
+                physicalitySupportedSeasons: null,
+                physicalityIncludedSeasons: "",
+                physicalityPositiveSeasons: null,
+                historicalPhysicalityBonus: null
+            };
+        }
+
+        if (!Number.isFinite(beforeIndex)) {
+            throw new Error(
+                `Invalid Performance index for ${record.playerId}`
+            );
+        }
+
+        const bonus = calculateHistoricalPhysicalityBonus(
+            record,
+            physicalityRows
+        );
+
+        return {
+            ...record,
+            performanceBeforePhysicalityIndex: beforeIndex,
+            performanceBeforePhysicalityRating: beforeRating,
+            ...bonus,
+            performanceIndex:
+                beforeIndex + bonus.historicalPhysicalityBonus
+        };
+    });
+
+    return addPercentileRatings(
+        adjusted,
+        (record) => record.position,
+        "performanceIndex",
+        "performanceRating"
+    );
+}
+
 module.exports = {
     calculatePerformanceIndex,
     buildPerformanceHistoricalScores,
     calculateHistoricalFaceoffAdjustment,
     applyHistoricalFaceoffAdjustments,
-    calculateHistoricalPhysicalityBonus
+    calculateHistoricalPhysicalityBonus,
+    applyHistoricalPhysicalityBonuses
 };
